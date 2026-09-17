@@ -1,0 +1,88 @@
+{
+  "translation": {
+    "header": {
+      "project": "Project",
+      "projectNamePlaceholder": "Project Name",
+      "database": "Database",
+      "import": "Import",
+      "export": "Export",
+      "erDiagram": "ER Diagram",
+      "reset": "Reset",
+      "confirmReset": "Reset all tables? This action cannot be undone.",
+      "invalidJson": "Invalid JSON file."
+    },
+    "workspace": {
+      "noTables": "No Tables",
+      "startDesign": "Add a table to start designing your data model."
+    },
+    "table": {
+      "addTable": "Add Table",
+      "tableName": "Table Name",
+      "tableComment": "Comment...",
+      "deleteTableTitle": "Delete Table",
+      "confirmDeleteTable": "Delete this table?",
+      "foreignKeysTitle": "Foreign Keys",
+      "indexesTitle": "Indexes",
+      "addColumnTitle": "Add Column",
+      "addColumn": "Add",
+      "attributes": "Attributes",
+      "column": "Column",
+      "colName": "Name",
+      "colType": "Type",
+      "colLength": "Length",
+      "colPk": "PK",
+      "colNullable": "Nullable",
+      "colUnique": "Unique",
+      "colAutoIncrement": "Auto Inc",
+      "colUnsigned": "Unsigned",
+      "colDefault": "Default",
+      "colComment": "Comment",
+      "colRelation": "Relation",
+      "editRelationTitle": "Edit Relation",
+      "addRelationTitle": "Add Relation",
+      "select": "Select..."
+    },
+    "relationEditor": {
+      "title": "Foreign Key Settings",
+      "addForeignKey": "Add Foreign Key",
+      "done": "Done",
+      "noForeignKeys": "No foreign keys defined.",
+      "fkName": "FK Name",
+      "sourceColumn": "Source Column",
+      "refTable": "Ref Table",
+      "selectContext": "Select...",
+      "refColumn": "Ref Column",
+      "onDelete": "On Delete",
+      "onUpdate": "On Update",
+      "unnamed": "Unnamed"
+    },
+    "indexEditor": {
+      "title": "Index Settings",
+      "addIndex": "Add Index",
+      "done": "Done",
+      "noIndexes": "No indexes defined.",
+      "indexName": "Index Name",
+      "indexType": "Index Type",
+      "isUnique": "Unique",
+      "columns": "Columns"
+    },
+    "export": {
+      "title": "Export",
+      "description": "Export table definitions in various formats.",
+      "compatibilityWarning": "* Database or version-specific data types (e.g., UUID) may not be perfectly translated when exported to other formats. Please verify the output.",
+      "format": "Format:",
+      "noPreview": "Preview not available.",
+      "copy": "Copy",
+      "download": "Download",
+      "copied": "Copied"
+    },
+    "mermaid": {
+      "title": "ER Diagram Preview",
+      "noTables": "No tables available.",
+      "showCode": "Show Mermaid Code",
+      "close": "Close",
+      "renderError": "Failed to render ER diagram. Please add tables."
+    }
+  }
+}
+

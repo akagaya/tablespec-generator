@@ -1,0 +1,88 @@
+{
+  "translation": {
+    "header": {
+      "project": "プロジェクト",
+      "projectNamePlaceholder": "プロジェクト名",
+      "database": "データベース",
+      "import": "インポート",
+      "export": "エクスポート",
+      "erDiagram": "ER図",
+      "reset": "リセット",
+      "confirmReset": "すべてのテーブルをリセットします。この操作は元に戻せません。よろしいですか？",
+      "invalidJson": "無効なJSONファイルです。"
+    },
+    "workspace": {
+      "noTables": "テーブルがありません",
+      "startDesign": "テーブルを追加して、データモデルの設計を始めましょう。"
+    },
+    "table": {
+      "addTable": "テーブルを追加",
+      "tableName": "テーブル名",
+      "tableComment": "コメント...",
+      "deleteTableTitle": "テーブルを削除",
+      "confirmDeleteTable": "このテーブルを削除しますか？",
+      "foreignKeysTitle": "外部キー",
+      "indexesTitle": "インデックス",
+      "addColumnTitle": "カラムを追加",
+      "addColumn": "追加",
+      "attributes": "属性",
+      "column": "カラム",
+      "colName": "カラム名",
+      "colType": "データ型",
+      "colLength": "長さ",
+      "colPk": "PK",
+      "colNullable": "NULL許容",
+      "colUnique": "ユニーク",
+      "colAutoIncrement": "自動採番",
+      "colUnsigned": "符号なし",
+      "colDefault": "デフォルト",
+      "colComment": "コメント",
+      "colRelation": "リレーション",
+      "editRelationTitle": "リレーションを編集",
+      "addRelationTitle": "リレーションを追加",
+      "select": "選択..."
+    },
+    "relationEditor": {
+      "title": "外部キー設定",
+      "addForeignKey": "外部キーを追加",
+      "done": "完了",
+      "noForeignKeys": "設定された外部キーはありません。",
+      "fkName": "外部キー名",
+      "sourceColumn": "元カラム",
+      "refTable": "参照先テーブル",
+      "selectContext": "選択...",
+      "refColumn": "参照先カラム",
+      "onDelete": "削除時",
+      "onUpdate": "更新時",
+      "unnamed": "未命名"
+    },
+    "indexEditor": {
+      "title": "インデックス設定",
+      "addIndex": "インデックスを追加",
+      "done": "完了",
+      "noIndexes": "設定されたインデックスはありません。",
+      "indexName": "インデックス名",
+      "indexType": "インデックスタイプ",
+      "isUnique": "ユニーク",
+      "columns": "対象カラム"
+    },
+    "export": {
+      "title": "エクスポート",
+      "description": "テーブル定義を様々な形式でエクスポートします。",
+      "compatibilityWarning": "※ 選択したRDBMSやバージョン固有のデータ型（UUIDなど）は、他の形式へエクスポートする際に完全に変換されない場合があります。出力結果をご確認ください。",
+      "format": "フォーマット:",
+      "noPreview": "プレビューを表示できません。",
+      "copy": "コピー",
+      "download": "ダウンロード",
+      "copied": "コピーしました"
+    },
+    "mermaid": {
+      "title": "ER図プレビュー",
+      "noTables": "テーブルがありません。",
+      "showCode": "Mermaidコードを表示",
+      "close": "閉じる",
+      "renderError": "ER図の生成に失敗しました。テーブルを追加してください。"
+    }
+  }
+}
+

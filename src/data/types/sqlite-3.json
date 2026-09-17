@@ -1,0 +1,29 @@
+{
+  "id": "sqlite:3",
+  "engine": "sqlite",
+  "version": "3",
+  "label": "SQLite 3",
+  "defaultType": "INTEGER",
+  "types": [
+    {
+      "name": "INTEGER",
+      "category": "Affinity"
+    },
+    {
+      "name": "REAL",
+      "category": "Affinity"
+    },
+    {
+      "name": "TEXT",
+      "category": "Affinity"
+    },
+    {
+      "name": "BLOB",
+      "category": "Affinity"
+    },
+    {
+      "name": "NUMERIC",
+      "category": "Affinity"
+    }
+  ]
+}

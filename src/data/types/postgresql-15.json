@@ -1,0 +1,121 @@
+{
+  "id": "postgresql:15",
+  "engine": "postgresql",
+  "version": "15",
+  "label": "PostgreSQL 15",
+  "defaultType": "INTEGER",
+  "types": [
+    {
+      "name": "SMALLINT",
+      "category": "Integer"
+    },
+    {
+      "name": "INTEGER",
+      "category": "Integer"
+    },
+    {
+      "name": "BIGINT",
+      "category": "Integer"
+    },
+    {
+      "name": "SMALLSERIAL",
+      "category": "Serial"
+    },
+    {
+      "name": "SERIAL",
+      "category": "Serial"
+    },
+    {
+      "name": "BIGSERIAL",
+      "category": "Serial"
+    },
+    {
+      "name": "REAL",
+      "category": "Decimal"
+    },
+    {
+      "name": "DOUBLE PRECISION",
+      "category": "Decimal"
+    },
+    {
+      "name": "NUMERIC",
+      "category": "Decimal",
+      "hasPrecision": true,
+      "hasScale": true
+    },
+    {
+      "name": "CHAR",
+      "category": "String",
+      "hasLength": true
+    },
+    {
+      "name": "VARCHAR",
+      "category": "String",
+      "hasLength": true
+    },
+    {
+      "name": "TEXT",
+      "category": "String"
+    },
+    {
+      "name": "BYTEA",
+      "category": "Binary"
+    },
+    {
+      "name": "DATE",
+      "category": "Date/Time"
+    },
+    {
+      "name": "TIMESTAMP",
+      "category": "Date/Time"
+    },
+    {
+      "name": "TIMESTAMPTZ",
+      "category": "Date/Time"
+    },
+    {
+      "name": "TIME",
+      "category": "Date/Time"
+    },
+    {
+      "name": "TIMETZ",
+      "category": "Date/Time"
+    },
+    {
+      "name": "INTERVAL",
+      "category": "Date/Time"
+    },
+    {
+      "name": "BOOLEAN",
+      "category": "Boolean"
+    },
+    {
+      "name": "UUID",
+      "category": "UUID"
+    },
+    {
+      "name": "JSON",
+      "category": "JSON"
+    },
+    {
+      "name": "JSONB",
+      "category": "JSON"
+    },
+    {
+      "name": "INET",
+      "category": "Network"
+    },
+    {
+      "name": "CIDR",
+      "category": "Network"
+    },
+    {
+      "name": "MACADDR",
+      "category": "Network"
+    },
+    {
+      "name": "ARRAY",
+      "category": "Array"
+    }
+  ]
+}

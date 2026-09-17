@@ -1,0 +1,162 @@
+{
+  "id": "mariadb:11.4",
+  "engine": "mariadb",
+  "version": "11.4",
+  "label": "MariaDB 11.4 (LTS)",
+  "defaultType": "INT",
+  "types": [
+    {
+      "name": "TINYINT",
+      "category": "Integer",
+      "hasLength": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "SMALLINT",
+      "category": "Integer",
+      "hasLength": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "MEDIUMINT",
+      "category": "Integer",
+      "hasLength": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "INT",
+      "category": "Integer",
+      "hasLength": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "BIGINT",
+      "category": "Integer",
+      "hasLength": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "FLOAT",
+      "category": "Decimal",
+      "hasPrecision": true,
+      "hasScale": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "DOUBLE",
+      "category": "Decimal",
+      "hasPrecision": true,
+      "hasScale": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "DECIMAL",
+      "category": "Decimal",
+      "hasPrecision": true,
+      "hasScale": true,
+      "hasUnsigned": true
+    },
+    {
+      "name": "CHAR",
+      "category": "String",
+      "hasLength": true
+    },
+    {
+      "name": "VARCHAR",
+      "category": "String",
+      "hasLength": true
+    },
+    {
+      "name": "TINYTEXT",
+      "category": "String"
+    },
+    {
+      "name": "TEXT",
+      "category": "String"
+    },
+    {
+      "name": "MEDIUMTEXT",
+      "category": "String"
+    },
+    {
+      "name": "LONGTEXT",
+      "category": "String"
+    },
+    {
+      "name": "BINARY",
+      "category": "Binary",
+      "hasLength": true
+    },
+    {
+      "name": "VARBINARY",
+      "category": "Binary",
+      "hasLength": true
+    },
+    {
+      "name": "TINYBLOB",
+      "category": "Binary"
+    },
+    {
+      "name": "BLOB",
+      "category": "Binary"
+    },
+    {
+      "name": "MEDIUMBLOB",
+      "category": "Binary"
+    },
+    {
+      "name": "LONGBLOB",
+      "category": "Binary"
+    },
+    {
+      "name": "DATE",
+      "category": "Date/Time"
+    },
+    {
+      "name": "DATETIME",
+      "category": "Date/Time"
+    },
+    {
+      "name": "TIMESTAMP",
+      "category": "Date/Time"
+    },
+    {
+      "name": "TIME",
+      "category": "Date/Time"
+    },
+    {
+      "name": "YEAR",
+      "category": "Date/Time"
+    },
+    {
+      "name": "BOOLEAN",
+      "category": "Other"
+    },
+    {
+      "name": "ENUM",
+      "category": "Other",
+      "hasEnumValues": true
+    },
+    {
+      "name": "SET",
+      "category": "Other",
+      "hasEnumValues": true
+    },
+    {
+      "name": "JSON",
+      "category": "Other"
+    },
+    {
+      "name": "UUID",
+      "category": "Other"
+    },
+    {
+      "name": "INET4",
+      "category": "Other"
+    },
+    {
+      "name": "INET6",
+      "category": "Other"
+    }
+  ]
+}

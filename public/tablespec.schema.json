@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://tablespec.dev/schema/v1.0.0",
+  "title": "TableSpec",
+  "description": "Database table structure specification",
+  "type": "object",
+  "required": ["version", "database", "tables"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "1.0.0",
+      "description": "Schema version"
+    },
+    "projectName": {
+      "type": "string",
+      "description": "Project name"
+    },
+    "database": {
+      "$ref": "#/$defs/database"
+    },
+    "tables": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/table"
+      },
+      "description": "Array of table definitions"
+    }
+  },
+  "$defs": {
+    "database": {
+      "type": "object",
+      "required": ["engine", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "engine": {
+          "type": "string",
+          "enum": ["mariadb", "postgresql", "sqlite", "mysql"],
+          "description": "Target database engine"
+        },
+        "version": {
+          "type": "string",
+          "description": "Target database version"
+        },
+        "charset": {
+          "type": "string",
+          "description": "Default character set"
+        },
+        "collation": {
+          "type": "string",
+          "description": "Default collation"
+        }
+      }
+    },
+    "table": {
+      "type": "object",
+      "required": ["id", "name", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for internal reference"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "description": "Table name"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Table comment"
+        },
+        "columns": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/column"
+          },
+          "minItems": 1,
+          "description": "Column definitions (at least one)"
+        },
+        "indexes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/index"
+          },
+          "default": [],
+          "description": "Index definitions"
+        },
+        "foreignKeys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/foreignKey"
+          },
+          "default": [],
+          "description": "Foreign key definitions"
+        }
+      }
+    },
+    "column": {
+      "type": "object",
+      "required": ["id", "name", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for internal reference"
+        },
+        "name": {
+          "type": "string",
+          "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$",
+          "description": "Column name"
+        },
+        "type": {
+          "type": "string",
+          "description": "Data type (engine-dependent)"
+        },
+        "length": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Character length or display width"
+        },
+        "precision": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Numeric precision"
+        },
+        "scale": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Numeric scale"
+        },
+        "nullable": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether NULL is allowed"
+        },
+        "primaryKey": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this column is a primary key"
+        },
+        "unique": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this column has a unique constraint"
+        },
+        "autoIncrement": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this column auto-increments"
+        },
+        "unsigned": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this column is unsigned (MariaDB)"
+        },
+        "default": {
+          "oneOf": [
+            { "type": "string" },
+            { "type": "number" },
+            { "type": "boolean" },
+            { "type": "null" },
+            {
+              "type": "object",
+              "required": ["expression"],
+              "additionalProperties": false,
+              "properties": {
+                "expression": {
+                  "type": "string",
+                  "description": "SQL expression for default value"
+                }
+              }
+            }
+          ],
+          "description": "Default value (literal or SQL expression)"
+        },
+        "comment": {
+          "type": "string",
+          "description": "Column comment"
+        },
+        "enumValues": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Allowed values for ENUM/SET types"
+        }
+      }
+    },
+    "index": {
+      "type": "object",
+      "required": ["id", "columns"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Index name (auto-generated if omitted)"
+        },
+        "columns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Column names included in the index"
+        },
+        "unique": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether this is a unique index"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["btree", "hash", "gin", "gist", "brin"],
+          "description": "Index type (engine-dependent)"
+        }
+      }
+    },
+    "foreignKey": {
+      "type": "object",
+      "required": ["id", "columns", "referenceTable", "referenceColumns"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Constraint name (auto-generated if omitted)"
+        },
+        "columns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Source column names"
+        },
+        "referenceTable": {
+          "type": "string",
+          "description": "Referenced table ID"
+        },
+        "referenceColumns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "Referenced column names"
+        },
+        "onDelete": {
+          "type": "string",
+          "enum": ["CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT", "NO ACTION"],
+          "description": "Action on delete"
+        },
+        "onUpdate": {
+          "type": "string",
+          "enum": ["CASCADE", "SET NULL", "SET DEFAULT", "RESTRICT", "NO ACTION"],
+          "description": "Action on update"
+        }
+      }
+    }
+  }
+}
+
