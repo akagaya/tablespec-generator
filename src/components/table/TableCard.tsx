@@ -32,24 +32,24 @@ export function TableCard({ table }: { table: Table }) {
 
   return (
     <div className="bg-white border border-gray-300 shadow-sm">
-      <div className="px-4 py-2 border-b border-gray-300 flex items-center justify-between bg-gray-800">
-        <div className="flex items-center gap-3 flex-1">
+      <div className="px-3 sm:px-4 py-2 border-b border-gray-300 flex flex-col sm:flex-row sm:items-center justify-between bg-gray-800 gap-2 sm:gap-0">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1">
           <input
             type="text"
             value={table.name}
             onChange={(e) => updateTableName(table.id, e.target.value)}
             placeholder={t('table.tableName')}
-            className="font-bold px-2 py-0.5 bg-gray-700 text-white placeholder-gray-400 border border-transparent hover:border-gray-500 focus:bg-gray-600 focus:border-gray-500 focus:outline-none w-64 transition-colors"
+            className="font-bold px-2 py-1 sm:py-0.5 bg-gray-700 text-white placeholder-gray-400 border border-transparent hover:border-gray-500 focus:bg-gray-600 focus:border-gray-500 focus:outline-none w-full sm:w-64 transition-colors"
           />
           <input
             type="text"
             value={table.comment}
             onChange={(e) => updateTableComment(table.id, e.target.value)}
             placeholder={t('table.tableComment')}
-            className="text-sm px-2 py-0.5 bg-gray-700 text-gray-200 placeholder-gray-400 border border-transparent hover:border-gray-500 focus:bg-gray-600 focus:border-gray-500 focus:outline-none flex-1 max-w-xs transition-colors"
+            className="text-sm px-2 py-1 sm:py-0.5 bg-gray-700 text-gray-200 placeholder-gray-400 border border-transparent hover:border-gray-500 focus:bg-gray-600 focus:border-gray-500 focus:outline-none w-full sm:flex-1 sm:max-w-xs transition-colors"
           />
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-1 sm:gap-2">
           <button
             onClick={() => setIsRelationEditorOpen(true)}
             className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
