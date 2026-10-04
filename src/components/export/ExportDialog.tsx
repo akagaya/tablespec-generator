@@ -95,7 +95,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
               }`}
             >
               <div className="whitespace-nowrap text-sm font-medium text-gray-900">{exporter.name}</div>
-              <div className="mt-0.5 hidden text-xs text-gray-500 md:block">{exporter.description}</div>
+              <div className="mt-0.5 hidden text-xs text-gray-600 md:block">{exporter.description}</div>
             </button>
           );
         })}
@@ -105,7 +105,7 @@ export function ExportDialog({ onClose }: { onClose: () => void }) {
         {results.length > 0 ? (
           results.map((result) => <ResultBlock key={result.filename} result={result} />)
         ) : (
-          <div className="mt-10 text-center text-gray-500">{t('export.noPreview')}</div>
+          <div className="mt-10 text-center text-gray-400">{t('export.noPreview')}</div>
         )}
       </div>
     </Modal>

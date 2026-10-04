@@ -17,7 +17,7 @@ export function ColumnChecklist({ columns, selected, onChange }: Props) {
     onChange(selected.includes(name) ? selected.filter((c) => c !== name) : [...selected, name]);
 
   if (columns.length === 0) {
-    return <p className="rounded-md border border-dashed p-3 text-sm text-gray-400">{t('common.noColumns')}</p>;
+    return <p className="rounded-md border border-dashed p-3 text-sm text-gray-500">{t('common.noColumns')}</p>;
   }
 
   return (
@@ -36,7 +36,7 @@ export function ColumnChecklist({ columns, selected, onChange }: Props) {
               onChange={() => toggle(col.name)}
             />
             <span className="flex-1 truncate font-mono">{col.name || t('relationEditor.unnamed')}</span>
-            <span className="text-xs text-gray-400">{col.type}</span>
+            <span className="text-xs text-gray-500">{col.type}</span>
             {order >= 0 && (
               <span className="flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white">
                 {order + 1}

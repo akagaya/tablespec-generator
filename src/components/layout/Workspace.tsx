@@ -16,7 +16,7 @@ export function Workspace() {
           <Database className="h-8 w-8 text-blue-600" />
         </div>
         <h2 className="mb-2 text-xl font-semibold text-gray-800">{t('workspace.noTables')}</h2>
-        <p className="mb-6 max-w-sm text-sm text-gray-500">{t('workspace.startDesign')}</p>
+        <p className="mb-6 max-w-sm text-sm text-gray-600">{t('workspace.startDesign')}</p>
         <AddTableButton variant="hero" />
       </main>
     );

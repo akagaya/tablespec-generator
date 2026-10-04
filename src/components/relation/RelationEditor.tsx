@@ -65,8 +65,8 @@ export function RelationEditor({ tableId, onClose }: Props) {
       }
     >
       {currentTable.foreignKeys.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-12 text-center text-gray-500">
-          <Link className="h-8 w-8 text-gray-300" />
+        <div className="flex flex-col items-center gap-3 py-12 text-center text-gray-600">
+          <Link className="h-8 w-8 text-gray-400" />
           <p>{t('relationEditor.noForeignKeys')}</p>
           <button onClick={() => addForeignKey(tableId)} className={buttonClass.primary}>
             <Plus className="h-4 w-4" /> {t('relationEditor.addForeignKey')}
@@ -141,7 +141,7 @@ export function RelationEditor({ tableId, onClose }: Props) {
                           </option>
                         ))}
                       </select>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <ArrowRight className="h-4 w-4 text-gray-500" />
                       <select
                         value={fk.referenceColumns[i] ?? ''}
                         onChange={(e) => setPair(fk, i, 'referenceColumns', e.target.value)}

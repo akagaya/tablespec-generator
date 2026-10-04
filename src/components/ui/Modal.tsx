@@ -65,11 +65,11 @@ export function Modal({ title, subtitle, onClose, children, footer, size = 'md',
             <h2 id={titleId} className="truncate text-base font-bold text-gray-900 sm:text-lg">
               {title}
             </h2>
-            {subtitle && <p className="mt-0.5 text-sm text-gray-500">{subtitle}</p>}
+            {subtitle && <p className="mt-0.5 text-sm text-gray-600">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="-mr-1 rounded-md p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+            className="-mr-1 rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-700"
             aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
