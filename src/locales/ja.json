@@ -9,7 +9,9 @@
       "erDiagram": "ER図",
       "reset": "リセット",
       "confirmReset": "すべてのテーブルをリセットします。この操作は元に戻せません。よろしいですか？",
-      "invalidJson": "無効なJSONファイルです。"
+      "invalidJson": "無効なJSONファイルです。",
+      "menu": "メニュー",
+      "language": "言語"
     },
     "workspace": {
       "noTables": "テーブルがありません",
@@ -40,7 +42,8 @@
       "colRelation": "リレーション",
       "editRelationTitle": "リレーションを編集",
       "addRelationTitle": "リレーションを追加",
-      "select": "選択..."
+      "select": "選択...",
+      "deleteColumnTitle": "カラムを削除"
     },
     "relationEditor": {
       "title": "外部キー設定",
@@ -54,7 +57,8 @@
       "refColumn": "参照先カラム",
       "onDelete": "削除時",
       "onUpdate": "更新時",
-      "unnamed": "未命名"
+      "unnamed": "未命名",
+      "deleteForeignKey": "外部キーを削除"
     },
     "indexEditor": {
       "title": "インデックス設定",
@@ -64,7 +68,8 @@
       "indexName": "インデックス名",
       "indexType": "インデックスタイプ",
       "isUnique": "ユニーク",
-      "columns": "対象カラム"
+      "columns": "対象カラム",
+      "deleteIndex": "インデックスを削除"
     },
     "export": {
       "title": "エクスポート",
@@ -81,8 +86,8 @@
       "noTables": "テーブルがありません。",
       "showCode": "Mermaidコードを表示",
       "close": "閉じる",
-      "renderError": "ER図の生成に失敗しました。テーブルを追加してください。"
+      "renderError": "ER図の生成に失敗しました。テーブルを追加してください。",
+      "loading": "ER図を生成中..."
     }
   }
 }
-

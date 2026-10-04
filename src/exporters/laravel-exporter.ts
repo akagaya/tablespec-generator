@@ -1,5 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { joinLines } from './utils';
 
 export const laravelExporter: Exporter = {
   id: 'laravel',
@@ -73,7 +74,7 @@ export const laravelExporter: Exporter = {
 
     return {
       filename: 'migration.php',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'php',
     };
   }

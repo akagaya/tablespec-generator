@@ -1,5 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { isMysqlFamily, joinLines } from './utils';
 
 export const drizzleExporter: Exporter = {
   id: 'drizzle',
@@ -11,14 +12,14 @@ export const drizzleExporter: Exporter = {
     const engine = spec.database.engine;
     let pkg = '';
     
-    if (engine === 'mariadb' || engine === 'mysql') pkg = 'drizzle-orm/mysql-core';
+    if (isMysqlFamily(engine)) pkg = 'drizzle-orm/mysql-core';
     else if (engine === 'postgresql') pkg = 'drizzle-orm/pg-core';
     else if (engine === 'sqlite') pkg = 'drizzle-orm/sqlite-core';
 
     lines.push(`import { sql } from 'drizzle-orm';`);
     if (engine === 'postgresql') {
       lines.push(`import { pgTable as table, integer, varchar, text, boolean, timestamp, serial, uuid } from '${pkg}';`);
-    } else if (engine === 'mariadb' || engine === 'mysql') {
+    } else if (isMysqlFamily(engine)) {
       lines.push(`import { mysqlTable as table, int, varchar, text, boolean, timestamp, serial } from '${pkg}';`);
     } else {
       lines.push(`import { sqliteTable as table, integer, text, blob } from '${pkg}';`);
@@ -59,7 +60,7 @@ export const drizzleExporter: Exporter = {
 
     return {
       filename: 'schema.ts',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'typescript',
     };
   }

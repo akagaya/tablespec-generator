@@ -1,5 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { joinLines } from './utils';
 
 export const mermaidExporter: Exporter = {
   id: 'mermaid',
@@ -35,7 +36,7 @@ export const mermaidExporter: Exporter = {
 
     return {
       filename: 'diagram.mmd',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'mermaid',
     };
   }

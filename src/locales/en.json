@@ -9,7 +9,9 @@
       "erDiagram": "ER Diagram",
       "reset": "Reset",
       "confirmReset": "Reset all tables? This action cannot be undone.",
-      "invalidJson": "Invalid JSON file."
+      "invalidJson": "Invalid JSON file.",
+      "menu": "Menu",
+      "language": "Language"
     },
     "workspace": {
       "noTables": "No Tables",
@@ -40,7 +42,8 @@
       "colRelation": "Relation",
       "editRelationTitle": "Edit Relation",
       "addRelationTitle": "Add Relation",
-      "select": "Select..."
+      "select": "Select...",
+      "deleteColumnTitle": "Delete Column"
     },
     "relationEditor": {
       "title": "Foreign Key Settings",
@@ -54,7 +57,8 @@
       "refColumn": "Ref Column",
       "onDelete": "On Delete",
       "onUpdate": "On Update",
-      "unnamed": "Unnamed"
+      "unnamed": "Unnamed",
+      "deleteForeignKey": "Delete Foreign Key"
     },
     "indexEditor": {
       "title": "Index Settings",
@@ -64,7 +68,8 @@
       "indexName": "Index Name",
       "indexType": "Index Type",
       "isUnique": "Unique",
-      "columns": "Columns"
+      "columns": "Columns",
+      "deleteIndex": "Delete Index"
     },
     "export": {
       "title": "Export",
@@ -81,8 +86,8 @@
       "noTables": "No tables available.",
       "showCode": "Show Mermaid Code",
       "close": "Close",
-      "renderError": "Failed to render ER diagram. Please add tables."
+      "renderError": "Failed to render ER diagram. Please add tables.",
+      "loading": "Rendering ER diagram..."
     }
   }
 }
-

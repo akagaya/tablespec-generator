@@ -1,11 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../store/useProjectStore';
 import { TableCard } from '../table/TableCard';
 import { AddTableButton } from '../table/AddTableButton';
-import { useTranslation } from 'react-i18next';
 
 export function Workspace() {
   const { t } = useTranslation();
-  const tables = useProjectStore(state => state.spec.tables);
+  const tables = useProjectStore((state) => state.spec.tables);
 
   return (
     <main className="flex flex-col gap-6 p-6 overflow-y-auto flex-1 bg-gray-50">
@@ -17,7 +17,7 @@ export function Workspace() {
         </div>
       ) : (
         <>
-          {tables.map(table => (
+          {tables.map((table) => (
             <TableCard key={table.id} table={table} />
           ))}
           <AddTableButton />

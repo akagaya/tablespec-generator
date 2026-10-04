@@ -1,5 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { joinLines } from './utils';
 
 export const railsExporter: Exporter = {
   id: 'rails',
@@ -63,7 +64,7 @@ export const railsExporter: Exporter = {
 
     return {
       filename: 'migration.rb',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'ruby',
     };
   }

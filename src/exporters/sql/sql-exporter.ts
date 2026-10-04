@@ -1,8 +1,9 @@
 import type { Exporter, ExportResult } from '../../types/exporter';
 import type { TableSpec, Column, DatabaseEngine } from '../../types/tablespec';
+import { isMysqlFamily, joinLines } from '../utils';
 
 function quote(identifier: string, engine: DatabaseEngine): string {
-  if (engine === 'mariadb' || engine === 'mysql') return `\`${identifier}\``;
+  if (isMysqlFamily(engine)) return `\`${identifier}\``;
   return `"${identifier}"`;
 }
 
@@ -28,11 +29,11 @@ function getColumnDefinition(col: Column, engine: DatabaseEngine): string {
   if (col.length) def += `(${col.length})`;
   else if (col.precision && col.scale) def += `(${col.precision}, ${col.scale})`;
   
-  if (col.unsigned && (engine === 'mariadb' || engine === 'mysql')) def += ' UNSIGNED';
+  if (col.unsigned && isMysqlFamily(engine)) def += ' UNSIGNED';
   if (!col.nullable) def += ' NOT NULL';
   
   if (col.autoIncrement && engine !== 'postgresql') {
-    if (engine === 'mariadb' || engine === 'mysql') def += ' AUTO_INCREMENT';
+    if (isMysqlFamily(engine)) def += ' AUTO_INCREMENT';
     if (engine === 'sqlite' && col.primaryKey) def += ' AUTOINCREMENT';
   }
 
@@ -42,7 +43,7 @@ function getColumnDefinition(col: Column, engine: DatabaseEngine): string {
     def += ` DEFAULT ${getDefaultValue(col.default)}`;
   }
   
-  if (col.comment && (engine === 'mariadb' || engine === 'mysql')) {
+  if (col.comment && isMysqlFamily(engine)) {
     def += ` COMMENT '${col.comment.replace(/'/g, "''")}'`;
   }
   
@@ -74,7 +75,7 @@ export const sqlExporter: Exporter = {
       lines.push(tableElements.join(',\n'));
       
       let tableSuffix = ')';
-      if (engine === 'mariadb' || engine === 'mysql') {
+      if (isMysqlFamily(engine)) {
         tableSuffix += ' ENGINE=InnoDB';
         if (spec.database.charset) tableSuffix += ` DEFAULT CHARSET=${spec.database.charset}`;
         if (table.comment) tableSuffix += ` COMMENT='${table.comment.replace(/'/g, "''")}'`;
@@ -107,7 +108,7 @@ export const sqlExporter: Exporter = {
 
     return {
       filename: 'schema.sql',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'sql',
     };
   },

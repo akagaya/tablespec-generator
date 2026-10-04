@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "deploy": "wrangler deploy",
     "test": "vitest run",
-    "typecheck": "tsc -b --noEmit"
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "file-saver": "^2.0.5",

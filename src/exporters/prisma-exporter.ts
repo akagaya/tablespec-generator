@@ -1,8 +1,9 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec, Column, DatabaseEngine } from '../types/tablespec';
+import { isMysqlFamily, joinLines } from './utils';
 
 function getProvider(engine: DatabaseEngine): string {
-  if (engine === 'mariadb' || engine === 'mysql') return 'mysql';
+  if (isMysqlFamily(engine)) return 'mysql';
   if (engine === 'postgresql') return 'postgresql';
   if (engine === 'sqlite') return 'sqlite';
   return 'postgresql';
@@ -77,7 +78,7 @@ export const prismaExporter: Exporter = {
 
     return {
       filename: 'schema.prisma',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'prisma',
     };
   }

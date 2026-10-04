@@ -1,13 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type {
-  TableSpec,
-  Table,
-  Column,
-  Index,
-  ForeignKey,
-  DatabaseEngine,
-} from '../types/tablespec';
+import type { TableSpec, Column, Index, ForeignKey, DatabaseEngine } from '../types/tablespec';
 import {
   createDefaultSpec,
   createTable,
@@ -15,22 +8,21 @@ import {
   createIndex,
   createForeignKey,
 } from '../types/tablespec';
-import { getDefaultType } from '../data/column-types';
+import { getDefaultType, resolveDbProfile } from '../data/column-types';
+import { mapTable, propagateColumnChange, propagateTableChange, replaceById } from './spec-updaters';
 
 interface ProjectState {
   spec: TableSpec;
-  selectedTableId: string | null;
 
   // Project / Database
   setProjectName: (name: string) => void;
   setDatabase: (engine: DatabaseEngine, version: string) => void;
 
-  // Tables
-  addTable: () => void;
+  // Tables（addTable は追加したテーブルの id を返す）
+  addTable: () => string;
   removeTable: (id: string) => void;
   updateTableName: (id: string, name: string) => void;
   updateTableComment: (id: string, comment: string) => void;
-  selectTable: (id: string | null) => void;
 
   // Columns
   addColumn: (tableId: string) => void;
@@ -52,170 +44,123 @@ interface ProjectState {
   resetSpec: () => void;
 }
 
-function updateTableInSpec(spec: TableSpec, tableId: string, updater: (table: Table) => Table): TableSpec {
-  return {
-    ...spec,
-    tables: spec.tables.map((t) => (t.id === tableId ? updater(t) : t)),
-  };
+function defaultTypeOf(spec: TableSpec): string {
+  return getDefaultType(spec.database.engine, spec.database.version);
 }
 
 export const useProjectStore = create<ProjectState>()(
   persist(
-    (set) => ({
-      spec: createDefaultSpec(),
-      selectedTableId: null,
+    (set, get) => {
+      const updateSpec = (updater: (spec: TableSpec) => TableSpec) =>
+        set((state) => ({ spec: updater(state.spec) }));
 
-      setProjectName: (name) =>
-        set((state) => ({
-          spec: {
-            ...state.spec,
-            projectName: name,
-          },
-        })),
+      return {
+        spec: createDefaultSpec(),
 
-      setDatabase: (engine, version) =>
-        set((state) => ({
-          spec: {
-            ...state.spec,
-            database: { ...state.spec.database, engine, version },
-          },
-        })),
+        setProjectName: (projectName) => updateSpec((spec) => ({ ...spec, projectName })),
 
-      addTable: () =>
-        set((state) => {
-          const newTable = createTable({
-            name: `table_${state.spec.tables.length + 1}`,
+        setDatabase: (engine, version) =>
+          updateSpec((spec) => ({ ...spec, database: { ...spec.database, engine, version } })),
+
+        addTable: () => {
+          const { spec } = get();
+          const table = createTable({
+            name: `table_${spec.tables.length + 1}`,
             columns: [
-              createColumn({
-                name: 'id',
-                type: getDefaultType(state.spec.database.engine, state.spec.database.version),
-                primaryKey: true,
-                autoIncrement: true,
-              }),
+              createColumn({ name: 'id', type: defaultTypeOf(spec), primaryKey: true, autoIncrement: true }),
             ],
           });
-          return {
-            spec: {
-              ...state.spec,
-              tables: [...state.spec.tables, newTable],
-            },
-            selectedTableId: newTable.id,
-          };
-        }),
+          set({ spec: { ...spec, tables: [...spec.tables, table] } });
+          return table.id;
+        },
 
-      removeTable: (id) =>
-        set((state) => ({
-          spec: {
-            ...state.spec,
-            tables: state.spec.tables.filter((t) => t.id !== id),
-          },
-          selectedTableId:
-            state.selectedTableId === id ? null : state.selectedTableId,
-        })),
+        removeTable: (id) =>
+          updateSpec((spec) => {
+            const target = spec.tables.find((t) => t.id === id);
+            const next = { ...spec, tables: spec.tables.filter((t) => t.id !== id) };
+            return target ? propagateTableChange(next, target.name, null) : next;
+          }),
 
-      updateTableName: (id, name) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, id, (t) => ({ ...t, name })),
-        })),
+        updateTableName: (id, name) =>
+          updateSpec((spec) => {
+            const oldName = spec.tables.find((t) => t.id === id)?.name ?? '';
+            return propagateTableChange(mapTable(spec, id, (t) => ({ ...t, name })), oldName, name);
+          }),
 
-      updateTableComment: (id, comment) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, id, (t) => ({ ...t, comment })),
-        })),
+        updateTableComment: (id, comment) => updateSpec((spec) => mapTable(spec, id, (t) => ({ ...t, comment }))),
 
-      selectTable: (id) => set({ selectedTableId: id }),
+        addColumn: (tableId) =>
+          updateSpec((spec) =>
+            mapTable(spec, tableId, (t) => ({
+              ...t,
+              columns: [...t.columns, createColumn({ name: `column_${t.columns.length + 1}`, type: defaultTypeOf(spec) })],
+            })),
+          ),
 
-      addColumn: (tableId) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            columns: [
-              ...t.columns,
-              createColumn({
-                name: `column_${t.columns.length + 1}`,
-                type: getDefaultType(state.spec.database.engine, state.spec.database.version),
-              }),
-            ],
-          })),
-        })),
+        removeColumn: (tableId, columnId) =>
+          updateSpec((spec) => {
+            const oldName = spec.tables.find((t) => t.id === tableId)?.columns.find((c) => c.id === columnId)?.name ?? '';
+            const next = mapTable(spec, tableId, (t) => ({ ...t, columns: t.columns.filter((c) => c.id !== columnId) }));
+            return propagateColumnChange(next, tableId, oldName, null);
+          }),
 
-      removeColumn: (tableId, columnId) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            columns: t.columns.filter((c) => c.id !== columnId),
-          })),
-        })),
+        updateColumn: (tableId, columnId, updates) =>
+          updateSpec((spec) => {
+            const oldName = spec.tables.find((t) => t.id === tableId)?.columns.find((c) => c.id === columnId)?.name ?? '';
+            const next = mapTable(spec, tableId, (t) => ({
+              ...t,
+              columns: replaceById(t.columns, columnId, (c) => ({ ...c, ...updates })),
+            }));
+            return updates.name === undefined ? next : propagateColumnChange(next, tableId, oldName, updates.name);
+          }),
 
-      updateColumn: (tableId, columnId, updates) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            columns: t.columns.map((c) =>
-              c.id === columnId ? { ...c, ...updates } : c
-            ),
-          })),
-        })),
+        addIndex: (tableId) =>
+          updateSpec((spec) => mapTable(spec, tableId, (t) => ({ ...t, indexes: [...t.indexes, createIndex()] }))),
 
-      addIndex: (tableId) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            indexes: [...t.indexes, createIndex()],
-          })),
-        })),
+        removeIndex: (tableId, indexId) =>
+          updateSpec((spec) =>
+            mapTable(spec, tableId, (t) => ({ ...t, indexes: t.indexes.filter((i) => i.id !== indexId) })),
+          ),
 
-      removeIndex: (tableId, indexId) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            indexes: t.indexes.filter((i) => i.id !== indexId),
-          })),
-        })),
+        updateIndex: (tableId, indexId, updates) =>
+          updateSpec((spec) =>
+            mapTable(spec, tableId, (t) => ({
+              ...t,
+              indexes: replaceById(t.indexes, indexId, (i) => ({ ...i, ...updates })),
+            })),
+          ),
 
-      updateIndex: (tableId, indexId, updates) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            indexes: t.indexes.map((i) =>
-              i.id === indexId ? { ...i, ...updates } : i
-            ),
-          })),
-        })),
+        addForeignKey: (tableId) =>
+          updateSpec((spec) =>
+            mapTable(spec, tableId, (t) => ({ ...t, foreignKeys: [...t.foreignKeys, createForeignKey()] })),
+          ),
 
-      addForeignKey: (tableId) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            foreignKeys: [...t.foreignKeys, createForeignKey()],
-          })),
-        })),
+        removeForeignKey: (tableId, fkId) =>
+          updateSpec((spec) =>
+            mapTable(spec, tableId, (t) => ({ ...t, foreignKeys: t.foreignKeys.filter((fk) => fk.id !== fkId) })),
+          ),
 
-      removeForeignKey: (tableId, fkId) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            foreignKeys: t.foreignKeys.filter((fk) => fk.id !== fkId),
-          })),
-        })),
+        updateForeignKey: (tableId, fkId, updates) =>
+          updateSpec((spec) =>
+            mapTable(spec, tableId, (t) => ({
+              ...t,
+              foreignKeys: replaceById(t.foreignKeys, fkId, (fk) => ({ ...fk, ...updates })),
+            })),
+          ),
 
-      updateForeignKey: (tableId, fkId, updates) =>
-        set((state) => ({
-          spec: updateTableInSpec(state.spec, tableId, (t) => ({
-            ...t,
-            foreignKeys: t.foreignKeys.map((fk) =>
-              fk.id === fkId ? { ...fk, ...updates } : fk
-            ),
-          })),
-        })),
+        importSpec: (spec) => {
+          // 未対応バージョンは同エンジンの最新プロファイルへ寄せる
+          const profile = resolveDbProfile(spec.database.engine, spec.database.version);
+          const database = profile ? { ...spec.database, version: profile.version } : spec.database;
+          set({ spec: { ...spec, database } });
+        },
 
-      importSpec: (spec) => set({ spec, selectedTableId: null }),
-
-      resetSpec: () =>
-        set({ spec: createDefaultSpec(), selectedTableId: null }),
-    }),
+        resetSpec: () => set({ spec: createDefaultSpec() }),
+      };
+    },
     {
       name: 'tablespec-project',
-    }
-  )
+      partialize: (state) => ({ spec: state.spec }),
+    },
+  ),
 );

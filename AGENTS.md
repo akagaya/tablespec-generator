@@ -24,20 +24,28 @@
 
 ```
 src/
-├── types/          # TableSpec 型定義、Exporter インターフェース
-├── data/           # DB別データ型マスタ
-├── store/          # Zustand ストア（useProjectStore）
+├── types/          # TableSpec 型定義・列挙定数、Exporter インターフェース
+├── data/           # DB別データ型マスタ（types/*.json を glob 収集）
+├── lib/            # UI 非依存の純粋ロジック（インポート検証、デフォルト値、型変更）
+├── store/          # Zustand ストア
+│   ├── useProjectStore.ts  # TableSpec 本体（persist → localStorage）
+│   ├── spec-updaters.ts    # 参照整合性を保つ純粋更新関数
+│   └── useUiStore.ts       # ダイアログ等の非永続 UI 状態
 ├── components/     # React UIコンポーネント
+│   ├── ui/         #   Modal 等の共通部品
 │   ├── layout/     #   Header, Workspace
-│   ├── table/      #   TableCard, ColumnCell, AddColumn/Table
+│   ├── table/      #   TableCard, ColumnGrid（行定義ベース）, セル部品
 │   ├── relation/   #   RelationEditor (modal)
 │   ├── index/      #   IndexEditor (modal)
-│   └── export/     #   ExportDialog
+│   ├── export/     #   ExportDialog, MermaidPreview（mermaid は動的 import）
+│   └── DialogHost  #   useUiStore.dialog に応じてモーダルを描画
 ├── exporters/      # エクスポータプラグインシステム
 │   ├── registry.ts #   ExporterRegistry（register/get/getAll）
+│   ├── run.ts      #   実行ヘルパ（結果を配列に正規化）
 │   ├── sql/        #   SQL エクスポータ + DB方言
 │   └── *.ts        #   各フレームワーク向けエクスポータ
-└── hooks/          # カスタムフック
+├── hooks/          # カスタムフック
+└── __tests__/      # Vitest（エクスポータはスナップショットで出力を固定）
 ```
 
 ## 核心設計
@@ -46,6 +54,11 @@ src/
 - `docs/tablespec-schema.md` に厳密仕様を定義済み
 - `public/tablespec.schema.json` に JSON Schema を配置
 - バージョン: `1.0.0`
+
+### 参照整合性
+- インデックス・外部キーはカラム名／テーブル名で参照する
+- 名前の変更・削除は `store/spec-updaters.ts` が参照側へ伝播する
+- 名前入力は `CommitInput`（blur / Enter で確定）を使う。1文字ごとに伝播させると途中の名前衝突で参照が壊れるため
 
 ### UI モデル
 - テーブルカード: 行=属性（Type, PK, Null, etc.）、列=DBカラム
@@ -83,6 +96,10 @@ docker compose up prod       # http://localhost:8080
 # ローカル開発（Docker不使用）
 npm install
 npm run dev
+
+# テスト・型チェック
+npm test
+npm run typecheck
 ```
 
 ## 現在のステータス

@@ -12,6 +12,7 @@ export interface ColumnTypeInfo {
 }
 
 export interface DbProfile {
+  /** `${engine}:${version}` */
   id: string;
   engine: DatabaseEngine;
   version: string;
@@ -21,10 +22,9 @@ export interface DbProfile {
 }
 
 // ViteのGlobインポートで ./types/ 配下のすべてのJSONをビルド時に収集
-const profileModules = import.meta.glob('./types/*.json', { eager: true });
+const profileModules = import.meta.glob<DbProfile>('./types/*.json', { eager: true, import: 'default' });
 
 export const PROFILES: DbProfile[] = Object.values(profileModules)
-  .map((mod: any) => mod.default || mod)
   // エンジン順、バージョンは降順でソート
   .sort((a, b) => a.engine.localeCompare(b.engine) || b.version.localeCompare(a.version, undefined, { numeric: true }));
 
@@ -32,16 +32,28 @@ export function getDbProfile(engine: DatabaseEngine, version: string): DbProfile
   return PROFILES.find(p => p.engine === engine && p.version === version);
 }
 
+export function getSupportedVersions(engine: DatabaseEngine): DbProfile[] {
+  return PROFILES.filter(p => p.engine === engine);
+}
+
+/** 指定バージョンのプロファイルが無い場合は同エンジンの最新版を返す */
+export function resolveDbProfile(engine: DatabaseEngine, version: string): DbProfile | undefined {
+  return getDbProfile(engine, version) ?? getSupportedVersions(engine)[0];
+}
+
 export function getColumnTypes(engine: DatabaseEngine, version: string): ColumnTypeInfo[] {
-  const profile = getDbProfile(engine, version);
-  return profile ? profile.types : [];
+  return getDbProfile(engine, version)?.types ?? [];
 }
 
 export function getDefaultType(engine: DatabaseEngine, version: string): string {
-  const profile = getDbProfile(engine, version);
-  return profile ? profile.defaultType : 'INT';
+  return getDbProfile(engine, version)?.defaultType ?? 'INT';
 }
 
-export function getSupportedVersions(engine: DatabaseEngine): DbProfile[] {
-  return PROFILES.filter(p => p.engine === engine);
+/** PROFILES をエンジンごとにグループ化（表示順を維持） */
+export function groupProfilesByEngine(): [DatabaseEngine, DbProfile[]][] {
+  const groups = new Map<DatabaseEngine, DbProfile[]>();
+  for (const profile of PROFILES) {
+    groups.set(profile.engine, [...(groups.get(profile.engine) ?? []), profile]);
+  }
+  return Array.from(groups);
 }
