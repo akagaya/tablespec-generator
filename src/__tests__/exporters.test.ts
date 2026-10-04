@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { exporterRegistry, registerBuiltinExporters } from '../exporters';
 import { buildFixtureSpec } from './fixtures';
+import { PROFILES } from '../data/column-types';
+import { createColumn, createForeignKey, createTable } from '../types/tablespec';
 
 const engines = [
   ['mariadb', '11.4'],
@@ -67,5 +69,70 @@ describe('foreign key references', () => {
     for (const id of ['sql', 'laravel', 'rails', 'django', 'mermaid', 'drizzle']) {
       expect(generate(id, spec)).not.toMatch(/fk_posts_user|ForeignKey\(|add_foreign_key|->foreign\(|\}o--\|\||references\(/);
     }
+  });
+});
+
+describe('drizzle exporter', () => {
+  const generate = (spec: ReturnType<typeof buildFixtureSpec>) => {
+    const result = exporterRegistry.get('drizzle')!.generate(spec);
+    return Array.isArray(result) ? result[0].content : result.content;
+  };
+
+  /** 生成コード中で呼び出している関数がすべて import または宣言されていること */
+  const undefinedCalls = (code: string) => {
+    const imported = new Set(
+      [...code.matchAll(/import \{ ([^}]+) \}/g)].flatMap((m) => m[1].split(',').map((s) => s.trim())),
+    );
+    const declared = new Set([...code.matchAll(/const (\w+) =/g)].map((m) => m[1]));
+    const body = code.replace(/'(?:\\.|[^'\\])*'/g, "''").replace(/`[^`]*`/g, '``');
+    const called = new Set(
+      [...body.matchAll(/(?<![.\w])([a-zA-Z_$][\w$]*)\(/g)].map((m) => m[1]).filter((n) => !['import'].includes(n)),
+    );
+    return [...called].filter((n) => !imported.has(n) && !declared.has(n));
+  };
+
+  for (const profile of PROFILES) {
+    it(`uses only imported builders for every ${profile.label} type`, () => {
+      const spec = buildFixtureSpec(profile.engine, profile.version);
+      spec.tables.push(
+        createTable({
+          name: 'all_types',
+          columns: profile.types.map((tc) =>
+            createColumn({
+              name: `c_${tc.name.toLowerCase().replace(/\s+/g, '_')}`,
+              type: tc.name,
+              length: tc.hasLength ? 20 : undefined,
+              precision: tc.hasPrecision ? 10 : undefined,
+              enumValues: tc.hasEnumValues ? ['a', 'b'] : undefined,
+            }),
+          ),
+        }),
+      );
+      expect(undefinedCalls(generate(spec))).toEqual([]);
+    });
+  }
+
+  it('emits composite primary keys, self references and quoted keys', () => {
+    const spec = buildFixtureSpec('postgresql', '16');
+    spec.tables.push(
+      createTable({
+        id: 't-tree',
+        name: 'index',
+        columns: [
+          createColumn({ name: 'tenant', type: 'INTEGER', primaryKey: true }),
+          createColumn({ name: 'id', type: 'INTEGER', primaryKey: true }),
+          createColumn({ name: 'parent-id', type: 'INTEGER', nullable: true }),
+        ],
+        foreignKeys: [
+          createForeignKey({ columns: ['tenant', 'parent-id'], referenceTable: 't-tree', referenceColumns: ['tenant', 'id'] }),
+        ],
+      }),
+    );
+    const code = generate(spec);
+    expect(code).toContain("export const indexTable = pgTable('index', {");
+    expect(code).toContain("tenant: integer('tenant').notNull(),");
+    expect(code).toContain('primaryKey({ columns: [t.tenant, t.id] })');
+    expect(code).toContain("columns: [t.tenant, t['parent-id']], foreignColumns: [t.tenant, t.id]");
+    expect(undefinedCalls(code)).toEqual([]);
   });
 });

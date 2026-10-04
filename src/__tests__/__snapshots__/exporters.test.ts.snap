@@ -38,22 +38,27 @@ class Posts(models.Model):
 exports[`builtin exporters > mariadb > drizzle 1`] = `
 {
   "content": "import { sql } from 'drizzle-orm';
-import { mysqlTable as table, int, varchar, text, boolean, timestamp, serial } from 'drizzle-orm/mysql-core';
+import { bigint, boolean, decimal, foreignKey, index, int, mysqlTable, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/mysql-core';
 
-export const users = table('users', {
-  id: integer('id').primaryKey(),
-  email: varchar('email').notNull().unique(),
-  nickname: varchar('nickname').default('guest'),
-  balance: text('balance').notNull().default(0),
+export const users = mysqlTable('users', {
+  id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  nickname: varchar('nickname', { length: 50 }).default('guest'),
+  balance: decimal('balance', { precision: 10, scale: 2 }).notNull().default('0'),
   created_at: timestamp('created_at').notNull().default(sql\`CURRENT_TIMESTAMP\`),
   active: boolean('active').notNull().default(true),
-});
+}, (t) => [
+  index('idx_users_nickname').on(t.nickname),
+]);
 
-export const posts = table('posts', {
-  id: integer('id').primaryKey(),
-  user_id: integer('user_id').notNull(),
+export const posts = mysqlTable('posts', {
+  id: int('id').primaryKey().autoincrement(),
+  user_id: bigint('user_id', { mode: 'number', unsigned: true }).notNull(),
   body: text('body'),
-});
+}, (t) => [
+  uniqueIndex('uq_posts_user').on(t.user_id, t.id),
+  foreignKey({ name: 'fk_posts_user', columns: [t.user_id], foreignColumns: [users.id] }).onDelete('cascade').onUpdate('no action'),
+]);
 ",
   "filename": "schema.ts",
   "language": "typescript",
@@ -433,22 +438,27 @@ class Posts(models.Model):
 exports[`builtin exporters > mysql > drizzle 1`] = `
 {
   "content": "import { sql } from 'drizzle-orm';
-import { mysqlTable as table, int, varchar, text, boolean, timestamp, serial } from 'drizzle-orm/mysql-core';
+import { bigint, boolean, decimal, foreignKey, index, int, mysqlTable, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/mysql-core';
 
-export const users = table('users', {
-  id: integer('id').primaryKey(),
-  email: varchar('email').notNull().unique(),
-  nickname: varchar('nickname').default('guest'),
-  balance: text('balance').notNull().default(0),
+export const users = mysqlTable('users', {
+  id: bigint('id', { mode: 'number', unsigned: true }).primaryKey().autoincrement(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  nickname: varchar('nickname', { length: 50 }).default('guest'),
+  balance: decimal('balance', { precision: 10, scale: 2 }).notNull().default('0'),
   created_at: timestamp('created_at').notNull().default(sql\`CURRENT_TIMESTAMP\`),
   active: boolean('active').notNull().default(true),
-});
+}, (t) => [
+  index('idx_users_nickname').on(t.nickname),
+]);
 
-export const posts = table('posts', {
-  id: integer('id').primaryKey(),
-  user_id: integer('user_id').notNull(),
+export const posts = mysqlTable('posts', {
+  id: int('id').primaryKey().autoincrement(),
+  user_id: bigint('user_id', { mode: 'number', unsigned: true }).notNull(),
   body: text('body'),
-});
+}, (t) => [
+  uniqueIndex('uq_posts_user').on(t.user_id, t.id),
+  foreignKey({ name: 'fk_posts_user', columns: [t.user_id], foreignColumns: [users.id] }).onDelete('cascade').onUpdate('no action'),
+]);
 ",
   "filename": "schema.ts",
   "language": "typescript",
@@ -828,22 +838,27 @@ class Posts(models.Model):
 exports[`builtin exporters > postgresql > drizzle 1`] = `
 {
   "content": "import { sql } from 'drizzle-orm';
-import { pgTable as table, integer, varchar, text, boolean, timestamp, serial, uuid } from 'drizzle-orm/pg-core';
+import { bigint, bigserial, boolean, foreignKey, index, numeric, pgTable, serial, text, timestamp, uniqueIndex, varchar } from 'drizzle-orm/pg-core';
 
-export const users = table('users', {
-  id: integer('id').primaryKey(),
-  email: varchar('email').notNull().unique(),
-  nickname: varchar('nickname').default('guest'),
-  balance: text('balance').notNull().default(0),
+export const users = pgTable('users', {
+  id: bigserial('id', { mode: 'number' }).primaryKey(),
+  email: varchar('email', { length: 255 }).notNull().unique(),
+  nickname: varchar('nickname', { length: 50 }).default('guest'),
+  balance: numeric('balance', { precision: 10, scale: 2 }).notNull().default('0'),
   created_at: timestamp('created_at').notNull().default(sql\`CURRENT_TIMESTAMP\`),
   active: boolean('active').notNull().default(true),
-});
+}, (t) => [
+  index('idx_users_nickname').on(t.nickname),
+]);
 
-export const posts = table('posts', {
-  id: integer('id').primaryKey(),
-  user_id: integer('user_id').notNull(),
+export const posts = pgTable('posts', {
+  id: serial('id').primaryKey(),
+  user_id: bigint('user_id', { mode: 'number' }).notNull(),
   body: text('body'),
-});
+}, (t) => [
+  uniqueIndex('uq_posts_user').on(t.user_id, t.id),
+  foreignKey({ name: 'fk_posts_user', columns: [t.user_id], foreignColumns: [users.id] }).onDelete('cascade').onUpdate('no action'),
+]);
 ",
   "filename": "schema.ts",
   "language": "typescript",
@@ -1223,22 +1238,27 @@ class Posts(models.Model):
 exports[`builtin exporters > sqlite > drizzle 1`] = `
 {
   "content": "import { sql } from 'drizzle-orm';
-import { sqliteTable as table, integer, text, blob } from 'drizzle-orm/sqlite-core';
+import { foreignKey, index, integer, numeric, sqliteTable, text, uniqueIndex } from 'drizzle-orm/sqlite-core';
 
-export const users = table('users', {
-  id: integer('id').primaryKey(),
-  email: varchar('email').notNull().unique(),
-  nickname: varchar('nickname').default('guest'),
-  balance: text('balance').notNull().default(0),
-  created_at: timestamp('created_at').notNull().default(sql\`CURRENT_TIMESTAMP\`),
-  active: boolean('active').notNull().default(true),
-});
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email', { length: 255 }).notNull().unique(),
+  nickname: text('nickname', { length: 50 }).default('guest'),
+  balance: numeric('balance').notNull().default('0'),
+  created_at: text('created_at').notNull().default(sql\`CURRENT_TIMESTAMP\`),
+  active: integer('active', { mode: 'boolean' }).notNull().default(true),
+}, (t) => [
+  index('idx_users_nickname').on(t.nickname),
+]);
 
-export const posts = table('posts', {
-  id: integer('id').primaryKey(),
+export const posts = sqliteTable('posts', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   user_id: integer('user_id').notNull(),
   body: text('body'),
-});
+}, (t) => [
+  uniqueIndex('uq_posts_user').on(t.user_id, t.id),
+  foreignKey({ name: 'fk_posts_user', columns: [t.user_id], foreignColumns: [users.id] }).onDelete('cascade').onUpdate('no action'),
+]);
 ",
   "filename": "schema.ts",
   "language": "typescript",
