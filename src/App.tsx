@@ -4,7 +4,7 @@ import { DialogHost } from './components/DialogHost';
 
 export default function App() {
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-white text-gray-900 font-sans">
+    <div className="flex h-dvh flex-col overflow-hidden bg-gray-50 font-sans text-gray-900">
       <Header />
       <Workspace />
       <DialogHost />

@@ -31,8 +31,15 @@ describe('propagateColumnChange', () => {
     const spec = base();
     const next = mapTable(spec, 't-posts', (t) => ({ ...t, columns: t.columns.filter((c) => c.id !== 'p2') }));
     const result = propagateColumnChange(next, 't-posts', 'user_id', null);
-    expect(result.tables[1].foreignKeys[0].columns).toEqual([]);
+    expect(result.tables[1].foreignKeys[0]).toMatchObject({ columns: [], referenceColumns: [] });
     expect(result.tables[1].indexes[0].columns).toEqual(['id']);
+  });
+
+  it('removes the FK pair when a referenced column is deleted', () => {
+    const spec = base();
+    const next = mapTable(spec, 't-users', (t) => ({ ...t, columns: t.columns.filter((c) => c.id !== 'c1') }));
+    const result = propagateColumnChange(next, 't-users', 'id', null);
+    expect(result.tables[1].foreignKeys[0]).toMatchObject({ columns: [], referenceColumns: [] });
   });
 
   it('keeps references while another column still has the old name', () => {

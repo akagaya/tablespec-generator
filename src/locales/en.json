@@ -15,20 +15,18 @@
     },
     "workspace": {
       "noTables": "No Tables",
-      "startDesign": "Add a table to start designing your data model."
+      "startDesign": "Add a table to start designing your data model.",
+      "tables": "Tables"
     },
     "table": {
       "addTable": "Add Table",
       "tableName": "Table Name",
       "tableComment": "Comment...",
       "deleteTableTitle": "Delete Table",
-      "confirmDeleteTable": "Delete this table?",
+      "confirmDeleteTable": "Delete table \"{{name}}\"?",
       "foreignKeysTitle": "Foreign Keys",
       "indexesTitle": "Indexes",
       "addColumnTitle": "Add Column",
-      "addColumn": "Add",
-      "attributes": "Attributes",
-      "column": "Column",
       "colName": "Name",
       "colType": "Type",
       "colLength": "Length",
@@ -43,7 +41,18 @@
       "editRelationTitle": "Edit Relation",
       "addRelationTitle": "Add Relation",
       "select": "Select...",
-      "deleteColumnTitle": "Delete Column"
+      "deleteColumnTitle": "Delete Column",
+      "unsupportedType": "This type is not defined for the selected database",
+      "precision": "Precision",
+      "scale": "Scale",
+      "enumValues": "Values",
+      "enumValuesPlaceholder": "a, b, c",
+      "defaultExpressionToggle": "Treat as SQL expression (e.g. NOW())",
+      "colSize": "Length / Precision",
+      "expand": "Expand",
+      "collapse": "Collapse",
+      "columnCount_one": "{{count}} column",
+      "columnCount_other": "{{count}} columns"
     },
     "relationEditor": {
       "title": "Foreign Key Settings",
@@ -58,7 +67,10 @@
       "onDelete": "On Delete",
       "onUpdate": "On Update",
       "unnamed": "Unnamed",
-      "deleteForeignKey": "Delete Foreign Key"
+      "deleteForeignKey": "Delete Foreign Key",
+      "self": "self",
+      "addPair": "Add column mapping",
+      "removePair": "Remove mapping"
     },
     "indexEditor": {
       "title": "Index Settings",
@@ -69,7 +81,8 @@
       "indexType": "Index Type",
       "isUnique": "Unique",
       "columns": "Columns",
-      "deleteIndex": "Delete Index"
+      "deleteIndex": "Delete Index",
+      "columnsHint": "Selection order defines column order"
     },
     "export": {
       "title": "Export",
@@ -86,8 +99,15 @@
       "noTables": "No tables available.",
       "showCode": "Show Mermaid Code",
       "close": "Close",
-      "renderError": "Failed to render ER diagram. Please add tables.",
-      "loading": "Rendering ER diagram..."
+      "renderError": "Failed to render the ER diagram. Check that table names, column names and types are set.",
+      "loading": "Rendering ER diagram...",
+      "copyCode": "Copy code",
+      "zoomIn": "Zoom in",
+      "zoomOut": "Zoom out"
+    },
+    "common": {
+      "close": "Close",
+      "noColumns": "No columns"
     }
   }
 }

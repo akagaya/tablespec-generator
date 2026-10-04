@@ -32,9 +32,9 @@ src/
 │   ├── spec-updaters.ts    # 参照整合性を保つ純粋更新関数
 │   └── useUiStore.ts       # ダイアログ等の非永続 UI 状態
 ├── components/     # React UIコンポーネント
-│   ├── ui/         #   Modal 等の共通部品
+│   ├── ui/         #   Modal, CommitInput, 共通スタイル（styles.ts）
 │   ├── layout/     #   Header, Workspace
-│   ├── table/      #   TableCard, ColumnGrid（行定義ベース）, セル部品
+│   ├── table/      #   TableCard, ColumnGrid（md以上）/ ColumnList（md未満）, セル部品
 │   ├── relation/   #   RelationEditor (modal)
 │   ├── index/      #   IndexEditor (modal)
 │   ├── export/     #   ExportDialog, MermaidPreview（mermaid は動的 import）
@@ -63,6 +63,9 @@ src/
 ### UI モデル
 - テーブルカード: 行=属性（Type, PK, Null, etc.）、列=DBカラム
 - カラム追加時は右方向に伸びる（横スクロール対応）
+- md 未満ではカラムを縦リスト（タップで展開）で表示する
+- lg 以上では左にテーブル一覧サイドバーを表示する
+- モーダルはモバイルで全画面、sm 以上で中央ダイアログ
 - テーブル・カラムは自由に増減可能
 
 ### エクスポータプラグイン

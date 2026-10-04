@@ -1,6 +1,7 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
 import { capitalize, joinLines } from './utils';
+import { indexNameOf } from '../lib/naming';
 
 export const djangoExporter: Exporter = {
   id: 'django',
@@ -68,7 +69,7 @@ export const djangoExporter: Exporter = {
         lines.push(`        indexes = [`);
         table.indexes.forEach(idx => {
           const cols = idx.columns.map(c => `'${c}'`).join(', ');
-          lines.push(`            models.Index(fields=[${cols}], name='${idx.name}'),`);
+          lines.push(`            models.Index(fields=[${cols}], name='${indexNameOf(table, idx)}'),`);
         });
         lines.push(`        ]`);
       }

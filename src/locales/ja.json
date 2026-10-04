@@ -15,20 +15,18 @@
     },
     "workspace": {
       "noTables": "テーブルがありません",
-      "startDesign": "テーブルを追加して、データモデルの設計を始めましょう。"
+      "startDesign": "テーブルを追加して、データモデルの設計を始めましょう。",
+      "tables": "テーブル"
     },
     "table": {
       "addTable": "テーブルを追加",
       "tableName": "テーブル名",
       "tableComment": "コメント...",
       "deleteTableTitle": "テーブルを削除",
-      "confirmDeleteTable": "このテーブルを削除しますか？",
+      "confirmDeleteTable": "テーブル「{{name}}」を削除しますか？",
       "foreignKeysTitle": "外部キー",
       "indexesTitle": "インデックス",
       "addColumnTitle": "カラムを追加",
-      "addColumn": "追加",
-      "attributes": "属性",
-      "column": "カラム",
       "colName": "カラム名",
       "colType": "データ型",
       "colLength": "長さ",
@@ -43,7 +41,17 @@
       "editRelationTitle": "リレーションを編集",
       "addRelationTitle": "リレーションを追加",
       "select": "選択...",
-      "deleteColumnTitle": "カラムを削除"
+      "deleteColumnTitle": "カラムを削除",
+      "unsupportedType": "選択中のデータベースでは未定義の型です",
+      "precision": "精度",
+      "scale": "スケール",
+      "enumValues": "選択肢",
+      "enumValuesPlaceholder": "a, b, c",
+      "defaultExpressionToggle": "SQL式として扱う（例: NOW()）",
+      "colSize": "長さ / 精度",
+      "expand": "展開",
+      "collapse": "折りたたむ",
+      "columnCount_other": "{{count}} カラム"
     },
     "relationEditor": {
       "title": "外部キー設定",
@@ -58,7 +66,10 @@
       "onDelete": "削除時",
       "onUpdate": "更新時",
       "unnamed": "未命名",
-      "deleteForeignKey": "外部キーを削除"
+      "deleteForeignKey": "外部キーを削除",
+      "self": "自身",
+      "addPair": "カラムの対応を追加",
+      "removePair": "対応を削除"
     },
     "indexEditor": {
       "title": "インデックス設定",
@@ -69,7 +80,8 @@
       "indexType": "インデックスタイプ",
       "isUnique": "ユニーク",
       "columns": "対象カラム",
-      "deleteIndex": "インデックスを削除"
+      "deleteIndex": "インデックスを削除",
+      "columnsHint": "選択順がインデックスの列順になります"
     },
     "export": {
       "title": "エクスポート",
@@ -86,8 +98,15 @@
       "noTables": "テーブルがありません。",
       "showCode": "Mermaidコードを表示",
       "close": "閉じる",
-      "renderError": "ER図の生成に失敗しました。テーブルを追加してください。",
-      "loading": "ER図を生成中..."
+      "renderError": "ER図の生成に失敗しました。テーブル名・カラム名・型が設定されているか確認してください。",
+      "loading": "ER図を生成中...",
+      "copyCode": "コードをコピー",
+      "zoomIn": "拡大",
+      "zoomOut": "縮小"
+    },
+    "common": {
+      "close": "閉じる",
+      "noColumns": "カラムがありません"
     }
   }
 }

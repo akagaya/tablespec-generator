@@ -37,10 +37,27 @@ export function propagateColumnChange(
     tables: spec.tables.map((t) => {
       const isSelf = t.id === tableId;
       const foreignKeys = t.foreignKeys.map((fk) => {
-        let next = fk;
-        if (isSelf) next = { ...next, columns: apply(next.columns) };
-        if (fk.referenceTable === table.name) next = { ...next, referenceColumns: apply(next.referenceColumns) };
-        return next;
+        const sideOf = (side: 'columns' | 'referenceColumns') =>
+          (side === 'columns' ? isSelf : fk.referenceTable === table.name);
+        if (!sideOf('columns') && !sideOf('referenceColumns')) return fk;
+        if (newName !== null) {
+          return {
+            ...fk,
+            columns: sideOf('columns') ? apply(fk.columns) : fk.columns,
+            referenceColumns: sideOf('referenceColumns') ? apply(fk.referenceColumns) : fk.referenceColumns,
+          };
+        }
+        // columns[i] と referenceColumns[i] は対応するペアなので、ペアごと削除する
+        const keep = fk.columns.map(
+          (_, i) =>
+            !(sideOf('columns') && fk.columns[i] === oldName) &&
+            !(sideOf('referenceColumns') && fk.referenceColumns[i] === oldName),
+        );
+        return {
+          ...fk,
+          columns: fk.columns.filter((_, i) => keep[i]),
+          referenceColumns: fk.referenceColumns.filter((_, i) => keep[i] ?? true),
+        };
       });
       const indexes = isSelf ? t.indexes.map((idx) => ({ ...idx, columns: apply(idx.columns) })) : t.indexes;
       return { ...t, foreignKeys, indexes };
