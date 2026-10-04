@@ -32,7 +32,7 @@ export function buildFixtureSpec(engine: TableSpec['database']['engine'], versio
         ],
         indexes: [{ id: 'i2', name: 'uq_posts_user', columns: ['user_id', 'id'], unique: true }],
         foreignKeys: [
-          { id: 'f1', name: 'fk_posts_user', columns: ['user_id'], referenceTable: 'users', referenceColumns: ['id'], onDelete: 'CASCADE', onUpdate: 'NO ACTION' },
+          { id: 'f1', name: 'fk_posts_user', columns: ['user_id'], referenceTable: 't-users', referenceColumns: ['id'], onDelete: 'CASCADE', onUpdate: 'NO ACTION' },
         ],
       },
     ],

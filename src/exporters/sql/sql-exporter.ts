@@ -1,6 +1,6 @@
 import type { Exporter, ExportResult } from '../../types/exporter';
 import type { TableSpec, Column, DatabaseEngine } from '../../types/tablespec';
-import { isMysqlFamily, joinLines } from '../utils';
+import { isMysqlFamily, joinLines, resolveForeignKeys } from '../utils';
 import { foreignKeyNameOf, indexNameOf } from '../../lib/naming';
 
 function quote(identifier: string, engine: DatabaseEngine): string {
@@ -101,10 +101,10 @@ export const sqlExporter: Exporter = {
     
     if (engine !== 'sqlite') {
       spec.tables.forEach((table) => {
-        table.foreignKeys.forEach((fk) => {
+        resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
           const cols = fk.columns.map((c) => quote(c, engine)).join(', ');
           const refCols = fk.referenceColumns.map((c) => quote(c, engine)).join(', ');
-          let constraint = `ALTER TABLE ${quote(table.name, engine)} ADD CONSTRAINT ${quote(foreignKeyNameOf(table, fk), engine)} FOREIGN KEY (${cols}) REFERENCES ${quote(fk.referenceTable, engine)} (${refCols})`;
+          let constraint = `ALTER TABLE ${quote(table.name, engine)} ADD CONSTRAINT ${quote(foreignKeyNameOf(spec, table, fk), engine)} FOREIGN KEY (${cols}) REFERENCES ${quote(referenceTableName, engine)} (${refCols})`;
           if (fk.onDelete) constraint += ` ON DELETE ${fk.onDelete}`;
           if (fk.onUpdate) constraint += ` ON UPDATE ${fk.onUpdate}`;
           constraint += ';';

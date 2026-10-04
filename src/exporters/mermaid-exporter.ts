@@ -1,6 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
-import { joinLines } from './utils';
+import { joinLines, resolveForeignKeys } from './utils';
 
 export const mermaidExporter: Exporter = {
   id: 'mermaid',
@@ -27,10 +27,10 @@ export const mermaidExporter: Exporter = {
     lines.push('');
 
     spec.tables.forEach(table => {
-      table.foreignKeys.forEach(fk => {
+      resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
         const isUniqueFk = table.columns.some(c => fk.columns.includes(c.name) && c.unique);
         const rel = isUniqueFk ? '||--||' : '}o--||';
-        lines.push(`  ${table.name} ${rel} ${fk.referenceTable} : ""`);
+        lines.push(`  ${table.name} ${rel} ${referenceTableName} : ""`);
       });
     });
 

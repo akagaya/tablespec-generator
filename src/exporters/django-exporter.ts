@@ -1,6 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
-import { capitalize, joinLines } from './utils';
+import { capitalize, joinLines, resolveForeignKeys } from './utils';
 import { indexNameOf } from '../lib/naming';
 
 export const djangoExporter: Exporter = {
@@ -48,8 +48,8 @@ export const djangoExporter: Exporter = {
       });
 
       // Simple implementation of foreign keys handling
-      table.foreignKeys.forEach(fk => {
-          let refModelName = capitalize(fk.referenceTable);
+      resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
+          let refModelName = capitalize(referenceTableName);
           let args: string[] = [`'${refModelName}'`];
           let on_delete = 'models.CASCADE';
           if (fk.onDelete === 'SET NULL') on_delete = 'models.SET_NULL';

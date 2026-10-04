@@ -6,6 +6,7 @@ import type { Column, ForeignKey } from '../../types/tablespec';
 import { formatDefault, isDefaultExpression, parseDefault } from '../../lib/column-default';
 import { describeRelation, typeChangeUpdates } from '../../lib/column-type';
 import { inputClass } from '../ui/styles';
+import { useProjectStore } from '../../store/useProjectStore';
 
 export type ColumnPatch = (updates: Partial<Column>) => void;
 
@@ -188,7 +189,8 @@ export function RelationCell({
   onEdit: () => void;
 }) {
   const { t } = useTranslation();
-  const relation = describeRelation(column, foreignKeys);
+  const tables = useProjectStore((state) => state.spec.tables);
+  const relation = describeRelation(column, foreignKeys, tables);
 
   return relation ? (
     <button

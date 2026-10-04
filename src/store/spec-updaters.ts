@@ -17,7 +17,8 @@ const removeFrom = (names: string[], target: string) => names.filter((n) => n !=
 
 /**
  * テーブル内のカラム名変更／削除を、同テーブルのインデックス・外部キーと
- * 他テーブルからの外部キー参照へ伝播させる。
+ * 他テーブルからの外部キー参照へ伝播させる（カラムは名前で参照される）。
+ * テーブルは ID で参照されるため、テーブル名の変更は伝播不要。
  * 同名カラムが他にも残っている場合は参照を保持する。
  */
 export function propagateColumnChange(
@@ -38,7 +39,7 @@ export function propagateColumnChange(
       const isSelf = t.id === tableId;
       const foreignKeys = t.foreignKeys.map((fk) => {
         const sideOf = (side: 'columns' | 'referenceColumns') =>
-          (side === 'columns' ? isSelf : fk.referenceTable === table.name);
+          (side === 'columns' ? isSelf : fk.referenceTable === table.id);
         if (!sideOf('columns') && !sideOf('referenceColumns')) return fk;
         if (newName !== null) {
           return {
@@ -66,23 +67,17 @@ export function propagateColumnChange(
 }
 
 /**
- * テーブル名変更／削除を他テーブルの外部キー参照へ伝播させる。
- * 削除時は参照先を空にし、ユーザーが再設定できる状態にする。
+ * テーブル削除時に、他テーブルの外部キーから参照を外す。
+ * 外部キー自体は残し、ユーザーが参照先を再設定できる状態にする。
  */
-export function propagateTableChange(spec: TableSpec, oldName: string, newName: string | null): TableSpec {
-  if (!oldName || oldName === newName) return spec;
-  if (spec.tables.some((t) => t.name === oldName)) return spec;
-
+export function clearTableReferences(spec: TableSpec, tableId: string): TableSpec {
   return {
     ...spec,
     tables: spec.tables.map((t) => ({
       ...t,
-      foreignKeys: t.foreignKeys.map((fk) => {
-        if (fk.referenceTable !== oldName) return fk;
-        return newName === null
-          ? { ...fk, referenceTable: '', referenceColumns: [] }
-          : { ...fk, referenceTable: newName };
-      }),
+      foreignKeys: t.foreignKeys.map((fk) =>
+        fk.referenceTable === tableId ? { ...fk, referenceTable: '', referenceColumns: [] } : fk,
+      ),
     })),
   };
 }

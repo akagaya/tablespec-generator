@@ -19,6 +19,8 @@ import {
   createTable,
 } from '../types/tablespec';
 
+import { migrateReferenceTables } from './references';
+
 export class SpecParseError extends Error {}
 
 type Obj = Record<string, unknown>;
@@ -124,5 +126,6 @@ export function parseSpec(raw: unknown): TableSpec {
   };
   if (typeof raw.database.charset === 'string') spec.database.charset = raw.database.charset;
   if (typeof raw.database.collation === 'string') spec.database.collation = raw.database.collation;
-  return spec;
+  // 旧形式（テーブル名参照）のファイルも読み込めるよう ID 参照へ変換する
+  return migrateReferenceTables(spec);
 }

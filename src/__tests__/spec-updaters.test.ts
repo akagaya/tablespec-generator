@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { mapTable, propagateColumnChange, propagateTableChange } from '../store/spec-updaters';
+import { clearTableReferences, mapTable, propagateColumnChange } from '../store/spec-updaters';
+import { migrateReferenceTables } from '../lib/references';
 import { buildFixtureSpec } from './fixtures';
 
 const base = () => buildFixtureSpec('mariadb', '11.4');
@@ -51,17 +52,28 @@ describe('propagateColumnChange', () => {
   });
 });
 
-describe('propagateTableChange', () => {
-  it('renames referenceTable', () => {
+describe('table references (by id)', () => {
+  it('keeps FK references intact when the referenced table is renamed', () => {
     const spec = mapTable(base(), 't-users', (t) => ({ ...t, name: 'members' }));
-    const result = propagateTableChange(spec, 'users', 'members');
-    expect(result.tables[1].foreignKeys[0].referenceTable).toBe('members');
+    expect(spec.tables[1].foreignKeys[0].referenceTable).toBe('t-users');
   });
 
   it('clears references to a removed table', () => {
     const spec = base();
-    const next = { ...spec, tables: spec.tables.filter((t) => t.id !== 't-users') };
-    const result = propagateTableChange(next, 'users', null);
-    expect(result.tables[0].foreignKeys[0]).toMatchObject({ referenceTable: '', referenceColumns: [] });
+    const next = clearTableReferences({ ...spec, tables: spec.tables.filter((t) => t.id !== 't-users') }, 't-users');
+    expect(next.tables[0].foreignKeys[0]).toMatchObject({ referenceTable: '', referenceColumns: [] });
+  });
+
+  it('migrates legacy name references to ids', () => {
+    const spec = base();
+    spec.tables[1].foreignKeys[0].referenceTable = 'users';
+    expect(migrateReferenceTables(spec).tables[1].foreignKeys[0].referenceTable).toBe('t-users');
+  });
+
+  it('leaves id references and unknown names untouched', () => {
+    const spec = base();
+    expect(migrateReferenceTables(spec)).toBe(spec);
+    spec.tables[1].foreignKeys[0].referenceTable = 'missing';
+    expect(migrateReferenceTables(spec).tables[1].foreignKeys[0].referenceTable).toBe('missing');
   });
 });

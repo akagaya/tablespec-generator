@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../store/useProjectStore';
 import { ForeignKey, REFERENTIAL_ACTIONS, ReferentialAction } from '../../types/tablespec';
 import { Modal } from '../ui/Modal';
+import { findReferencedTable } from '../../lib/references';
 import { defaultForeignKeyName } from '../../lib/naming';
 import { buttonClass, iconButtonClass, inputClass, labelClass } from '../ui/styles';
 
@@ -39,7 +40,7 @@ export function RelationEditor({ tableId, onClose }: Props) {
 
   const changeReferenceTable = (fk: ForeignKey, referenceTable: string) => {
     // 参照先の主キーを初期ペアとして提案する
-    const pk = tables.find((tb) => tb.name === referenceTable)?.columns.filter((c) => c.primaryKey) ?? [];
+    const pk = findReferencedTable(tables, { referenceTable })?.columns.filter((c) => c.primaryKey) ?? [];
     const referenceColumns = pk.map((c) => c.name);
     const columns = referenceColumns.map((_, i) => fk.columns[i] ?? '');
     update(fk.id, { referenceTable, referenceColumns, columns });
@@ -74,9 +75,9 @@ export function RelationEditor({ tableId, onClose }: Props) {
       ) : (
         currentTable.foreignKeys.map((fk) => {
           // 自己参照（parent_id など）も許可する
-          const refTable = tables.find((tb) => tb.name === fk.referenceTable);
+          const refTable = findReferencedTable(tables, fk);
           const pairCount = Math.max(fk.columns.length, fk.referenceColumns.length);
-          const suggestedName = defaultForeignKeyName(currentTable, fk);
+          const suggestedName = defaultForeignKeyName(currentTable, fk, refTable?.name);
 
           return (
             <div key={fk.id} className="rounded-lg border bg-white p-4 shadow-sm">
@@ -110,8 +111,8 @@ export function RelationEditor({ tableId, onClose }: Props) {
                 >
                   <option value="">{t('relationEditor.selectContext')}</option>
                   {tables.map((tb) => (
-                    <option key={tb.id} value={tb.name}>
-                      {tb.name}
+                    <option key={tb.id} value={tb.id}>
+                      {tb.name || t('relationEditor.unnamed')}
                       {tb.id === tableId ? ` (${t('relationEditor.self')})` : ''}
                     </option>
                   ))}

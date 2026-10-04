@@ -47,3 +47,25 @@ describe('sql exporter details', () => {
     expect(content).toContain('ADD CONSTRAINT `fk_posts_user_id` FOREIGN KEY');
   });
 });
+
+describe('foreign key references', () => {
+  const generate = (id: string, spec: ReturnType<typeof buildFixtureSpec>) => {
+    const result = exporterRegistry.get(id)!.generate(spec);
+    return Array.isArray(result) ? result.map((r) => r.content).join('\n') : result.content;
+  };
+
+  it('follows the referenced table after it is renamed', () => {
+    const spec = buildFixtureSpec('postgresql', '16');
+    spec.tables[0].name = 'members';
+    expect(generate('sql', spec)).toContain('REFERENCES "members" ("id")');
+    expect(generate('mermaid', spec)).toContain('posts }o--|| members');
+  });
+
+  it('skips foreign keys whose reference cannot be resolved', () => {
+    const spec = buildFixtureSpec('mariadb', '11.4');
+    spec.tables[1].foreignKeys[0].referenceTable = '';
+    for (const id of ['sql', 'laravel', 'rails', 'django', 'mermaid', 'drizzle']) {
+      expect(generate(id, spec)).not.toMatch(/fk_posts_user|ForeignKey\(|add_foreign_key|->foreign\(|\}o--\|\||references\(/);
+    }
+  });
+});

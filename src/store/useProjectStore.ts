@@ -9,7 +9,8 @@ import {
   createForeignKey,
 } from '../types/tablespec';
 import { getDefaultType, resolveDbProfile } from '../data/column-types';
-import { mapTable, propagateColumnChange, propagateTableChange, replaceById } from './spec-updaters';
+import { clearTableReferences, mapTable, propagateColumnChange, replaceById } from './spec-updaters';
+import { migrateReferenceTables } from '../lib/references';
 
 interface ProjectState {
   spec: TableSpec;
@@ -75,17 +76,9 @@ export const useProjectStore = create<ProjectState>()(
         },
 
         removeTable: (id) =>
-          updateSpec((spec) => {
-            const target = spec.tables.find((t) => t.id === id);
-            const next = { ...spec, tables: spec.tables.filter((t) => t.id !== id) };
-            return target ? propagateTableChange(next, target.name, null) : next;
-          }),
+          updateSpec((spec) => clearTableReferences({ ...spec, tables: spec.tables.filter((t) => t.id !== id) }, id)),
 
-        updateTableName: (id, name) =>
-          updateSpec((spec) => {
-            const oldName = spec.tables.find((t) => t.id === id)?.name ?? '';
-            return propagateTableChange(mapTable(spec, id, (t) => ({ ...t, name })), oldName, name);
-          }),
+        updateTableName: (id, name) => updateSpec((spec) => mapTable(spec, id, (t) => ({ ...t, name }))),
 
         updateTableComment: (id, comment) => updateSpec((spec) => mapTable(spec, id, (t) => ({ ...t, comment }))),
 
@@ -160,7 +153,14 @@ export const useProjectStore = create<ProjectState>()(
     },
     {
       name: 'tablespec-project',
+      version: 1,
       partialize: (state) => ({ spec: state.spec }),
+      // v0: foreignKeys[].referenceTable にテーブル名を格納していた → v1: テーブル ID
+      migrate: (persisted, version) => {
+        const state = persisted as { spec?: TableSpec };
+        if (version < 1 && state?.spec) return { ...state, spec: migrateReferenceTables(state.spec) };
+        return state;
+      },
     },
   ),
 );

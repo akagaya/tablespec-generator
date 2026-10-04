@@ -56,9 +56,11 @@ src/
 - バージョン: `1.0.0`
 
 ### 参照整合性
-- インデックス・外部キーはカラム名／テーブル名で参照する
-- 名前の変更・削除は `store/spec-updaters.ts` が参照側へ伝播する
-- 名前入力は `CommitInput`（blur / Enter で確定）を使う。1文字ごとに伝播させると途中の名前衝突で参照が壊れるため
+- 外部キーの参照先テーブル（`referenceTable`）はテーブル **ID** で参照する（仕様準拠。テーブル名の変更に影響されない）
+- インデックス・外部キーのカラムはカラム**名**で参照する。カラム名の変更・削除は `store/spec-updaters.ts` が参照側へ伝播する
+- 旧形式（`referenceTable` にテーブル名）は、インポート時と localStorage の persist `migrate`（v0→v1）で ID に変換する
+- エクスポータは `exporters/utils.ts` の `resolveForeignKeys` で参照先名を解決する。解決できない不完全な外部キーは出力しない
+- カラム名入力は `CommitInput`（blur / Enter で確定）を使う。1文字ごとに伝播させると途中の名前衝突で参照が壊れるため
 
 ### UI モデル
 - テーブルカード: 行=属性（Type, PK, Null, etc.）、列=DBカラム

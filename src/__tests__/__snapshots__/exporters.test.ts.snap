@@ -222,7 +222,7 @@ exports[`builtin exporters > mariadb > json 1`] = `
           "columns": [
             "user_id"
           ],
-          "referenceTable": "users",
+          "referenceTable": "t-users",
           "referenceColumns": [
             "id"
           ],
@@ -617,7 +617,7 @@ exports[`builtin exporters > mysql > json 1`] = `
           "columns": [
             "user_id"
           ],
-          "referenceTable": "users",
+          "referenceTable": "t-users",
           "referenceColumns": [
             "id"
           ],
@@ -1012,7 +1012,7 @@ exports[`builtin exporters > postgresql > json 1`] = `
           "columns": [
             "user_id"
           ],
-          "referenceTable": "users",
+          "referenceTable": "t-users",
           "referenceColumns": [
             "id"
           ],
@@ -1407,7 +1407,7 @@ exports[`builtin exporters > sqlite > json 1`] = `
           "columns": [
             "user_id"
           ],
-          "referenceTable": "users",
+          "referenceTable": "t-users",
           "referenceColumns": [
             "id"
           ],

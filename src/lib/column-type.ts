@@ -1,5 +1,6 @@
 import type { ColumnTypeInfo } from '../data/column-types';
-import type { Column, ForeignKey } from '../types/tablespec';
+import type { Column, ForeignKey, Table } from '../types/tablespec';
+import { findReferencedTable } from './references';
 
 /**
  * データ型変更時の更新内容。
@@ -18,9 +19,14 @@ export function typeChangeUpdates(column: Column, typeName: string, info: Column
 }
 
 /** 外部キーで参照している先（`table.column` 形式）。未設定なら null */
-export function describeRelation(column: Column, foreignKeys: ForeignKey[]): { fk: ForeignKey; label: string } | null {
+export function describeRelation(
+  column: Column,
+  foreignKeys: ForeignKey[],
+  tables: Table[],
+): { fk: ForeignKey; label: string } | null {
   const fk = foreignKeys.find((f) => f.columns.includes(column.name));
   if (!fk) return null;
+  const refName = findReferencedTable(tables, fk)?.name ?? '';
   const refColumn = fk.referenceColumns[fk.columns.indexOf(column.name)];
-  return { fk, label: fk.referenceTable ? (refColumn ? `${fk.referenceTable}.${refColumn}` : fk.referenceTable) : '' };
+  return { fk, label: refName ? (refColumn ? `${refName}.${refColumn}` : refName) : '' };
 }
