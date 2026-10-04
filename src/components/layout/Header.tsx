@@ -18,7 +18,7 @@ interface Action {
 const PROFILE_GROUPS = groupProfilesByEngine();
 
 const DARK_FIELD =
-  'rounded-md border border-gray-700 bg-gray-800 px-2 py-1.5 text-sm text-gray-100 outline-none transition-colors hover:border-gray-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30';
+  'rounded-md border border-gray-600 bg-gray-800 px-2 py-1.5 text-sm text-gray-100 outline-none transition-colors hover:border-gray-500 focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30';
 
 function DatabaseSelect({ className = '' }: { className?: string }) {
   const { t } = useTranslation();
@@ -158,7 +158,7 @@ export function Header() {
           onClick={exportAction.onClick}
           title={exportAction.label}
           aria-label={exportAction.label}
-          className="flex items-center gap-1.5 rounded-md bg-teal-600 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-teal-500 sm:px-3"
+          className="flex items-center gap-1.5 rounded-md bg-teal-700 px-2.5 py-1.5 text-sm font-semibold text-white hover:bg-teal-600 sm:px-3"
         >
           <Upload className="h-4 w-4" />
           <span className="hidden sm:inline">{exportAction.label}</span>
@@ -181,7 +181,7 @@ export function Header() {
               className="absolute right-0 top-full mt-2 w-64 overflow-hidden rounded-lg border border-gray-700 bg-gray-900 py-1 shadow-2xl"
             >
               <div className="space-y-2 border-b border-gray-800 px-4 py-3 sm:hidden">
-                <span className="block text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <span className="block text-xs font-semibold uppercase tracking-wide text-gray-400">
                   {t('header.database')}
                 </span>
                 <DatabaseSelect className="w-full" />

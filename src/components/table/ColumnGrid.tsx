@@ -30,7 +30,7 @@ interface Props {
 }
 
 const LABEL_CELL =
-  'sticky left-0 z-10 w-32 min-w-32 border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]';
+  'sticky left-0 z-10 w-32 min-w-32 border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]';
 
 /** デスクトップ用：行＝属性、列＝カラムの横展開グリッド */
 export function ColumnGrid({ table, columnTypes, onEditRelation }: Props) {
@@ -120,13 +120,13 @@ export function ColumnGrid({ table, columnTypes, onEditRelation }: Props) {
             {contexts.map(({ column, index }) => (
               <th key={column.id} className="w-44 min-w-44 border-b border-r border-gray-200 bg-gray-50 px-2 py-1.5">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-2 text-xs font-medium text-gray-400">
+                  <span className="flex items-center gap-2 text-xs font-medium text-gray-500">
                     {index + 1}
                     <ConstraintBadges column={column} />
                   </span>
                   <button
                     onClick={() => removeColumn(table.id, column.id)}
-                    className="rounded p-1 text-gray-300 hover:bg-red-50 hover:text-red-600"
+                    className="rounded p-1 text-gray-500 hover:bg-red-50 hover:text-red-600"
                     title={t('table.deleteColumnTitle')}
                     aria-label={`${t('table.deleteColumnTitle')}: ${column.name}`}
                   >
@@ -160,7 +160,7 @@ export function ColumnGrid({ table, columnTypes, onEditRelation }: Props) {
       <div className="w-32 shrink-0 p-2">
         <button
           onClick={() => addColumn(table.id)}
-          className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-200 text-xs font-medium text-gray-400 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+          className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 text-xs font-medium text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
         >
           <Plus className="h-5 w-5" />
           {t('table.addColumnTitle')}

@@ -61,7 +61,7 @@ export function MermaidPreview({ onClose }: { onClose: () => void }) {
       bodyClassName="relative bg-[radial-gradient(circle,#e5e7eb_1px,transparent_1px)] bg-[length:16px_16px] md:h-[70vh]"
       footer={
         <div className="flex flex-col gap-3">
-          <details className="text-xs text-gray-500">
+          <details className="text-xs text-gray-600">
             <summary className="cursor-pointer font-medium hover:text-gray-700">{t('mermaid.showCode')}</summary>
             <pre className="mt-2 max-h-40 overflow-auto rounded-md bg-gray-900 p-3 font-mono text-xs text-gray-200">
               {mermaidCode}
@@ -116,14 +116,14 @@ export function MermaidPreview({ onClose }: { onClose: () => void }) {
       )}
 
       {!mermaidCode ? (
-        <p className="mt-20 text-center text-gray-400">{t('mermaid.noTables')}</p>
+        <p className="mt-20 text-center text-gray-500">{t('mermaid.noTables')}</p>
       ) : state.status === 'loading' ? (
-        <p className="mt-20 flex items-center justify-center gap-2 text-gray-400">
+        <p className="mt-20 flex items-center justify-center gap-2 text-gray-500">
           <Loader2 className="h-4 w-4 animate-spin" />
           {t('mermaid.loading')}
         </p>
       ) : state.status === 'error' ? (
-        <p className="p-4 text-center text-red-500">{t('mermaid.renderError')}</p>
+        <p className="p-4 text-center text-red-600">{t('mermaid.renderError')}</p>
       ) : (
         <div className="p-4 sm:p-6">
           <div

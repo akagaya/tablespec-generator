@@ -53,13 +53,13 @@ export function ColumnList({ table, columnTypes, onEditRelation }: Props) {
                   </span>
                   <ConstraintBadges column={column} />
                 </span>
-                <span className="block truncate font-mono text-xs text-gray-500">
+                <span className="block truncate font-mono text-xs text-gray-600">
                   {column.type || '—'}
                   {size}
-                  {column.comment && <span className="ml-2 font-sans text-gray-400">{column.comment}</span>}
+                  {column.comment && <span className="ml-2 font-sans text-gray-500">{column.comment}</span>}
                 </span>
               </span>
-              <ChevronDown className={`h-4 w-4 shrink-0 text-gray-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-4 w-4 shrink-0 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
             </button>
 
             {isExpanded && (

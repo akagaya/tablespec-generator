@@ -47,8 +47,8 @@ export function IndexEditor({ tableId, onClose }: Props) {
       }
     >
       {currentTable.indexes.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-12 text-center text-gray-500">
-          <ListOrdered className="h-8 w-8 text-gray-300" />
+        <div className="flex flex-col items-center gap-3 py-12 text-center text-gray-600">
+          <ListOrdered className="h-8 w-8 text-gray-400" />
           <p>{t('indexEditor.noIndexes')}</p>
           <button onClick={() => addIndex(tableId)} className={buttonClass.primary}>
             <Plus className="h-4 w-4" /> {t('indexEditor.addIndex')}
@@ -98,7 +98,7 @@ export function IndexEditor({ tableId, onClose }: Props) {
 
               <label className={labelClass}>
                 {t('indexEditor.columns')}
-                <span className="ml-2 font-normal normal-case tracking-normal text-gray-400">
+                <span className="ml-2 font-normal normal-case tracking-normal text-gray-500">
                   {t('indexEditor.columnsHint')}
                 </span>
               </label>

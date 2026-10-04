@@ -106,7 +106,7 @@ export function SizeInputs({
     );
   }
 
-  return <span className="block py-1.5 text-center text-sm text-gray-300">—</span>;
+  return <span className="block py-1.5 text-center text-sm text-gray-500">—</span>;
 }
 
 /** ENUM / SET の選択肢をカンマ区切りで編集する */
@@ -170,7 +170,7 @@ export function DefaultInput({ column, onChange }: { column: Column; onChange: C
         className={`-ml-px shrink-0 rounded-r-md border px-2 text-xs font-semibold italic transition-colors ${
           asExpression
             ? 'border-purple-400 bg-purple-100 text-purple-700'
-            : 'border-gray-300 bg-gray-50 text-gray-400 hover:text-gray-600'
+            : 'border-gray-400 bg-gray-50 text-gray-500 hover:text-gray-700'
         }`}
       >
         fx
@@ -204,7 +204,7 @@ export function RelationCell({
   ) : (
     <button
       onClick={onEdit}
-      className="mx-auto flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-300 hover:bg-gray-100 hover:text-blue-600"
+      className="mx-auto flex items-center gap-1 rounded-md px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 hover:text-blue-600"
       title={t('table.addRelationTitle')}
     >
       <Plus className="h-3 w-3" />

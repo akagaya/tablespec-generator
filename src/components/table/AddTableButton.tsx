@@ -21,7 +21,7 @@ export function AddTableButton({ variant = 'block' }: { variant?: 'block' | 'her
   return (
     <button
       onClick={addTable}
-      className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-5 font-medium text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+      className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-5 font-medium text-gray-600 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
     >
       <Plus className="h-5 w-5" />
       {t('table.addTable')}

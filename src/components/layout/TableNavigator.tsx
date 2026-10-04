@@ -14,12 +14,12 @@ export function TableNavigator() {
   return (
     <aside className="hidden w-60 shrink-0 flex-col border-r bg-white lg:flex">
       <div className="flex items-center justify-between border-b px-4 py-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
-          {t('workspace.tables')} <span className="text-gray-400">({tables.length})</span>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+          {t('workspace.tables')} <span className="text-gray-500">({tables.length})</span>
         </h2>
         <button
           onClick={addTable}
-          className="rounded-md p-1 text-gray-400 hover:bg-blue-50 hover:text-blue-600"
+          className="rounded-md p-1 text-gray-500 hover:bg-blue-50 hover:text-blue-600"
           title={t('table.addTable')}
           aria-label={t('table.addTable')}
         >
@@ -33,9 +33,9 @@ export function TableNavigator() {
             onClick={() => focusTable(table.id)}
             className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-gray-700 hover:bg-gray-100"
           >
-            <Table2 className="h-4 w-4 shrink-0 text-gray-400" />
+            <Table2 className="h-4 w-4 shrink-0 text-gray-500" />
             <span className="flex-1 truncate font-mono">{table.name || t('relationEditor.unnamed')}</span>
-            <span className="text-xs text-gray-400">{table.columns.length}</span>
+            <span className="text-xs text-gray-500">{table.columns.length}</span>
           </button>
         ))}
       </nav>
