@@ -1,18 +1,30 @@
-import { useProjectStore } from '../../store/useProjectStore';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { useAddTable } from '../../hooks/useAddTable';
 
-export function AddTableButton() {
+export function AddTableButton({ variant = 'block' }: { variant?: 'block' | 'hero' }) {
   const { t } = useTranslation();
-  const addTable = useProjectStore(state => state.addTable);
+  const addTable = useAddTable();
+
+  if (variant === 'hero') {
+    return (
+      <button
+        onClick={addTable}
+        className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
+      >
+        <Plus className="h-5 w-5" />
+        {t('table.addTable')}
+      </button>
+    );
+  }
 
   return (
     <button
       onClick={addTable}
-      className="flex flex-col items-center justify-center gap-2 border-dashed border-2 border-blue-300 rounded-lg p-8 text-blue-500 bg-blue-50/50 hover:bg-blue-100 hover:text-blue-700 hover:border-blue-500 transition-colors font-medium"
+      className="flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-300 p-5 font-medium text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
     >
-      <Plus className="w-8 h-8" />
-      <span className="font-semibold text-base">{t('table.addTable')}</span>
+      <Plus className="h-5 w-5" />
+      {t('table.addTable')}
     </button>
   );
 }

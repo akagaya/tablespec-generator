@@ -1,5 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { joinLines, resolveForeignKeys } from './utils';
 
 export const laravelExporter: Exporter = {
   id: 'laravel',
@@ -50,8 +51,8 @@ export const laravelExporter: Exporter = {
         lines.push(`            ${call};`);
       });
 
-      table.foreignKeys.forEach(fk => {
-        let fkLine = `$table->foreign(['${fk.columns.join("','")}'])->references(['${fk.referenceColumns.join("','")}'])->on('${fk.referenceTable}')`;
+      resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
+        let fkLine = `$table->foreign(['${fk.columns.join("','")}'])->references(['${fk.referenceColumns.join("','")}'])->on('${referenceTableName}')`;
         if (fk.onDelete) fkLine += `->onDelete('${fk.onDelete.toLowerCase()}')`;
         if (fk.onUpdate) fkLine += `->onUpdate('${fk.onUpdate.toLowerCase()}')`;
         lines.push(`            ${fkLine};`);
@@ -73,7 +74,7 @@ export const laravelExporter: Exporter = {
 
     return {
       filename: 'migration.php',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'php',
     };
   }

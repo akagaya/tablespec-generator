@@ -1,117 +1,113 @@
-import { useState } from 'react';
-import { X, Download } from 'lucide-react';
-import { saveAs } from 'file-saver';
+import { useMemo, useState } from 'react';
+import { AlertTriangle, Check, Copy, Download } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../store/useProjectStore';
 import { exporterRegistry } from '../../exporters';
+import { runExporter } from '../../exporters/run';
+import { downloadResults } from '../../lib/download';
+import { useCopy } from '../../hooks/useCopy';
+import type { ExportResult } from '../../types/exporter';
+import { Modal } from '../ui/Modal';
+import { buttonClass } from '../ui/styles';
 
-interface Props {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function ExportDialog({ isOpen, onClose }: Props) {
+function ResultBlock({ result }: { result: ExportResult }) {
   const { t } = useTranslation();
-  const spec = useProjectStore(state => state.spec);
-  const exporters = exporterRegistry.getAll();
-  const [selectedExporterId, setSelectedExporterId] = useState<string>(exporters[0]?.id || '');
-
-  if (!isOpen) return null;
-
-  const selectedExporter = exporters.find(e => e.id === selectedExporterId);
-  
-  let exportResults = null;
-  try {
-    if (selectedExporter) {
-      exportResults = selectedExporter.generate(spec);
-    }
-  } catch (error) {
-    console.error('Export error:', error);
-  }
-
-  const resultsArr = Array.isArray(exportResults) 
-    ? exportResults 
-    : exportResults 
-      ? [exportResults] 
-      : [];
-
-  const handleDownload = () => {
-    resultsArr.forEach(result => {
-      const blob = new Blob([result.content], { type: 'text/plain;charset=utf-8' });
-      saveAs(blob, result.filename);
-    });
-    onClose();
-  };
+  const { copied, copy } = useCopy();
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white shadow-xl w-full max-w-5xl h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b">
-          <div>
-            <h2 className="text-lg font-bold">{t('export.title')}</h2>
-            <p className="text-sm text-gray-500 mt-1">{t('export.description')}</p>
-          </div>
-          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-700">
-            <X className="w-5 h-5" />
+    <div className="overflow-hidden rounded-lg border border-gray-700">
+      <div className="flex items-center justify-between gap-2 border-b border-gray-700 bg-gray-800 px-3 py-1.5">
+        <span className="truncate font-mono text-xs text-gray-300">{result.filename}</span>
+        <div className="flex shrink-0 gap-1">
+          <button
+            onClick={() => copy(result.content)}
+            className="flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-300 hover:bg-gray-700 hover:text-white"
+          >
+            {copied ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
+            {copied ? t('export.copied') : t('export.copy')}
+          </button>
+          <button
+            onClick={() => downloadResults([result])}
+            className="flex items-center gap-1 rounded px-2 py-1 text-xs text-gray-300 hover:bg-gray-700 hover:text-white"
+            aria-label={`${t('export.download')}: ${result.filename}`}
+          >
+            <Download className="h-3.5 w-3.5" />
           </button>
         </div>
-
-        <div className="flex flex-1 overflow-hidden">
-          {/* Left panel */}
-          <div className="w-1/3 border-r overflow-y-auto bg-gray-50 p-4 flex flex-col gap-2">
-            <h3 className="font-semibold text-gray-700 mb-2">{t('export.format')}</h3>
-            {exporters.map(exporter => (
-              <button
-                key={exporter.id}
-                onClick={() => setSelectedExporterId(exporter.id)}
-                className={`text-left p-3 border transition-colors ${
-                  selectedExporterId === exporter.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 bg-white hover:border-gray-300'
-                }`}
-              >
-                <div className="font-medium text-gray-900">{exporter.name}</div>
-                <div className="text-xs text-gray-500 mt-1">{exporter.description}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Right panel */}
-          <div className="w-2/3 flex flex-col overflow-hidden bg-gray-900 text-gray-100">
-            <div className="flex-1 p-4 overflow-y-auto">
-              {resultsArr.length > 0 ? (
-                resultsArr.map((result, idx) => (
-                  <div key={idx} className="mb-6 last:mb-0">
-                    <div className="text-xs font-mono text-gray-400 mb-2 border-b border-gray-700 pb-1">
-                      {result.filename}
-                    </div>
-                    <pre className="text-sm font-mono whitespace-pre-wrap">
-                      <code>{result.content}</code>
-                    </pre>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center text-gray-500 mt-10">
-                  {t('export.noPreview')}
-                </div>
-              )}
-            </div>
-            
-            <div className="p-4 border-t border-gray-700 bg-gray-800">
-              <p className="text-xs text-amber-500 mb-4">{t('export.compatibilityWarning')}</p>
-              <div className="flex justify-end">
-                <button
-                  onClick={handleDownload}
-                  disabled={resultsArr.length === 0}
-                  className="flex items-center gap-2 px-4 py-2 bg-teal-700 text-white hover:bg-teal-600 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Download className="w-4 h-4" /> {t('export.download')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
+      <pre className="overflow-x-auto p-4 font-mono text-xs leading-relaxed text-gray-100 sm:text-sm">
+        <code>{result.content}</code>
+      </pre>
     </div>
+  );
+}
+
+export function ExportDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
+  const spec = useProjectStore((state) => state.spec);
+  const exporters = exporterRegistry.getAll();
+  const [selectedId, setSelectedId] = useState(exporters[0]?.id ?? '');
+
+  const results = useMemo(() => runExporter(exporterRegistry.get(selectedId), spec), [selectedId, spec]);
+
+  return (
+    <Modal
+      title={t('export.title')}
+      subtitle={t('export.description')}
+      onClose={onClose}
+      size="xl"
+      bodyClassName="flex flex-col md:flex-row md:h-[70vh] overflow-hidden"
+      footer={
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p className="flex items-start gap-2 text-xs text-amber-700">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            {t('export.compatibilityWarning')}
+          </p>
+          <button
+            onClick={() => {
+              downloadResults(results);
+              onClose();
+            }}
+            disabled={results.length === 0}
+            className={`${buttonClass.accent} shrink-0`}
+          >
+            <Download className="h-4 w-4" /> {t('export.download')}
+          </button>
+        </div>
+      }
+    >
+      {/* モバイル: 横スクロールのチップ / md 以上: 縦リスト */}
+      <nav
+        aria-label={t('export.format')}
+        className="flex shrink-0 gap-2 overflow-x-auto border-b bg-gray-50 p-3 md:w-64 md:flex-col md:overflow-y-auto md:border-b-0 md:border-r"
+      >
+        {exporters.map((exporter) => {
+          const isSelected = selectedId === exporter.id;
+          return (
+            <button
+              key={exporter.id}
+              onClick={() => setSelectedId(exporter.id)}
+              aria-pressed={isSelected}
+              className={`shrink-0 rounded-lg border px-3 py-2 text-left transition-colors ${
+                isSelected
+                  ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
+                  : 'border-gray-200 bg-white hover:border-gray-300'
+              }`}
+            >
+              <div className="whitespace-nowrap text-sm font-medium text-gray-900">{exporter.name}</div>
+              <div className="mt-0.5 hidden text-xs text-gray-500 md:block">{exporter.description}</div>
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-gray-900 p-3 sm:p-4">
+        {results.length > 0 ? (
+          results.map((result) => <ResultBlock key={result.filename} result={result} />)
+        ) : (
+          <div className="mt-10 text-center text-gray-500">{t('export.noPreview')}</div>
+        )}
+      </div>
+    </Modal>
   );
 }

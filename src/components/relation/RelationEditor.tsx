@@ -1,166 +1,200 @@
-import { X, Plus, Trash2 } from 'lucide-react';
+import { ArrowRight, Link, Plus, Trash2, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../store/useProjectStore';
-import { ReferentialAction } from '../../types/tablespec';
+import { ForeignKey, REFERENTIAL_ACTIONS, ReferentialAction } from '../../types/tablespec';
+import { Modal } from '../ui/Modal';
+import { findReferencedTable } from '../../lib/references';
+import { defaultForeignKeyName } from '../../lib/naming';
+import { buttonClass, iconButtonClass, inputClass, labelClass } from '../ui/styles';
 
 interface Props {
   tableId: string;
-  isOpen: boolean;
   onClose: () => void;
 }
 
-export function RelationEditor({ tableId, isOpen, onClose }: Props) {
+export function RelationEditor({ tableId, onClose }: Props) {
   const { t } = useTranslation();
-  const spec = useProjectStore(state => state.spec);
-  const addForeignKey = useProjectStore(state => state.addForeignKey);
-  const removeForeignKey = useProjectStore(state => state.removeForeignKey);
-  const updateForeignKey = useProjectStore(state => state.updateForeignKey);
+  const tables = useProjectStore((state) => state.spec.tables);
+  const addForeignKey = useProjectStore((state) => state.addForeignKey);
+  const removeForeignKey = useProjectStore((state) => state.removeForeignKey);
+  const updateForeignKey = useProjectStore((state) => state.updateForeignKey);
 
-  if (!isOpen) return null;
-
-  const currentTable = spec.tables.find(t => t.id === tableId);
+  const currentTable = tables.find((tb) => tb.id === tableId);
   if (!currentTable) return null;
 
-  const otherTables = spec.tables.filter(t => t.id !== tableId);
+  const update = (fkId: string, updates: Partial<ForeignKey>) => updateForeignKey(tableId, fkId, updates);
 
-  const handleUpdate = (fkId: string, field: string, value: any) => {
-    updateForeignKey(tableId, fkId, { [field]: value });
+  /** columns[i] ↔ referenceColumns[i] をペアとして編集する */
+  const setPair = (fk: ForeignKey, index: number, side: 'columns' | 'referenceColumns', value: string) => {
+    const next = [...fk[side]];
+    next[index] = value;
+    update(fk.id, { [side]: next });
   };
+  const addPair = (fk: ForeignKey) =>
+    update(fk.id, { columns: [...fk.columns, ''], referenceColumns: [...fk.referenceColumns, ''] });
+  const removePair = (fk: ForeignKey, index: number) =>
+    update(fk.id, {
+      columns: fk.columns.filter((_, i) => i !== index),
+      referenceColumns: fk.referenceColumns.filter((_, i) => i !== index),
+    });
 
-  const handleColumnToggle = (fkId: string, column: string, field: 'columns' | 'referenceColumns', currentArr: string[]) => {
-    const newArr = currentArr.includes(column) 
-      ? currentArr.filter(c => c !== column)
-      : [...currentArr, column];
-    handleUpdate(fkId, field, newArr);
+  const changeReferenceTable = (fk: ForeignKey, referenceTable: string) => {
+    // 参照先の主キーを初期ペアとして提案する
+    const pk = findReferencedTable(tables, { referenceTable })?.columns.filter((c) => c.primaryKey) ?? [];
+    const referenceColumns = pk.map((c) => c.name);
+    const columns = referenceColumns.map((_, i) => fk.columns[i] ?? '');
+    update(fk.id, { referenceTable, referenceColumns, columns });
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="text-lg font-bold">{t('relationEditor.title')} - {currentTable.name || t('relationEditor.unnamed')}</h2>
-          <button onClick={onClose} className="p-1 text-gray-500 hover:text-gray-700">
-            <X className="w-5 h-5" />
+    <Modal
+      title={t('relationEditor.title')}
+      subtitle={<span className="font-mono">{currentTable.name || t('relationEditor.unnamed')}</span>}
+      onClose={onClose}
+      size="lg"
+      bodyClassName="p-4 sm:p-5 flex flex-col gap-4 bg-gray-50"
+      footer={
+        <div className="flex justify-between gap-2">
+          <button onClick={() => addForeignKey(tableId)} className={buttonClass.secondary}>
+            <Plus className="h-4 w-4" /> {t('relationEditor.addForeignKey')}
           </button>
-        </div>
-
-        <div className="p-4 overflow-y-auto flex-1 flex flex-col gap-6">
-          {currentTable.foreignKeys.length === 0 ? (
-            <p className="text-gray-500 text-center py-8">{t('relationEditor.noForeignKeys')}</p>
-          ) : (
-            currentTable.foreignKeys.map((fk) => (
-              <div key={fk.id} className="border rounded-md p-4 bg-gray-50 relative">
-                <button
-                  onClick={() => removeForeignKey(tableId, fk.id)}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-red-600"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-1">{t('relationEditor.sourceColumn')}</label>
-                    <div className="border rounded bg-white p-2 max-h-32 overflow-y-auto flex flex-col gap-1 mb-4">
-                      {currentTable.columns.map(col => (
-                        <label key={col.id} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={fk.columns.includes(col.name)}
-                            onChange={() => handleColumnToggle(fk.id, col.name, 'columns', fk.columns)}
-                          />
-                          {col.name || t('relationEditor.unnamed')}
-                        </label>
-                      ))}
-                    </div>
-
-                    <label className="block text-sm font-medium mb-1">{t('relationEditor.fkName')}</label>
-                    <input
-                      type="text"
-                      value={fk.name || ''}
-                      onChange={(e) => handleUpdate(fk.id, 'name', e.target.value)}
-                      className="w-full border rounded px-2 py-1 bg-white"
-                      placeholder="fk_name"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">{t('relationEditor.refTable')}</label>
-                    <select
-                      value={fk.referenceTable || ''}
-                      onChange={(e) => handleUpdate(fk.id, 'referenceTable', e.target.value)}
-                      className="w-full border rounded px-2 py-1 mb-2 bg-white"
-                    >
-                      <option value="">{t('relationEditor.selectContext')}</option>
-                      {otherTables.map(t => (
-                        <option key={t.id} value={t.name}>{t.name}</option>
-                      ))}
-                    </select>
-
-                    <label className="block text-sm font-medium mb-1">{t('relationEditor.refColumn')}</label>
-                    <div className="border rounded bg-white p-2 max-h-32 overflow-y-auto flex flex-col gap-1">
-                      {otherTables.find(tb => tb.name === fk.referenceTable)?.columns.map(col => (
-                        <label key={col.id} className="flex items-center gap-2 text-sm">
-                          <input
-                            type="checkbox"
-                            checked={fk.referenceColumns.includes(col.name)}
-                            onChange={() => handleColumnToggle(fk.id, col.name, 'referenceColumns', fk.referenceColumns)}
-                          />
-                          {col.name || t('relationEditor.unnamed')}
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">{t('relationEditor.onDelete')}</label>
-                    <select
-                      value={fk.onDelete || 'NO ACTION'}
-                      onChange={(e) => handleUpdate(fk.id, 'onDelete', e.target.value as ReferentialAction)}
-                      className="w-full border rounded px-2 py-1 bg-white"
-                    >
-                      <option value="CASCADE">CASCADE</option>
-                      <option value="SET NULL">SET NULL</option>
-                      <option value="SET DEFAULT">SET DEFAULT</option>
-                      <option value="RESTRICT">RESTRICT</option>
-                      <option value="NO ACTION">NO ACTION</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium mb-1">{t('relationEditor.onUpdate')}</label>
-                    <select
-                      value={fk.onUpdate || 'NO ACTION'}
-                      onChange={(e) => handleUpdate(fk.id, 'onUpdate', e.target.value as ReferentialAction)}
-                      className="w-full border rounded px-2 py-1 bg-white"
-                    >
-                      <option value="CASCADE">CASCADE</option>
-                      <option value="SET NULL">SET NULL</option>
-                      <option value="SET DEFAULT">SET DEFAULT</option>
-                      <option value="RESTRICT">RESTRICT</option>
-                      <option value="NO ACTION">NO ACTION</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-
-        <div className="p-4 border-t bg-gray-50 flex justify-between rounded-b-lg">
-          <button
-            onClick={() => addForeignKey(tableId)}
-            className="flex items-center gap-2 px-4 py-2 bg-white border rounded hover:bg-gray-50 font-medium"
-          >
-            <Plus className="w-4 h-4" /> {t('relationEditor.addForeignKey')}
-          </button>
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-medium"
-          >
+          <button onClick={onClose} className={buttonClass.primary}>
             {t('relationEditor.done')}
           </button>
         </div>
-      </div>
-    </div>
+      }
+    >
+      {currentTable.foreignKeys.length === 0 ? (
+        <div className="flex flex-col items-center gap-3 py-12 text-center text-gray-500">
+          <Link className="h-8 w-8 text-gray-300" />
+          <p>{t('relationEditor.noForeignKeys')}</p>
+          <button onClick={() => addForeignKey(tableId)} className={buttonClass.primary}>
+            <Plus className="h-4 w-4" /> {t('relationEditor.addForeignKey')}
+          </button>
+        </div>
+      ) : (
+        currentTable.foreignKeys.map((fk) => {
+          // 自己参照（parent_id など）も許可する
+          const refTable = findReferencedTable(tables, fk);
+          const pairCount = Math.max(fk.columns.length, fk.referenceColumns.length);
+          const suggestedName = defaultForeignKeyName(currentTable, fk, refTable?.name);
+
+          return (
+            <div key={fk.id} className="rounded-lg border bg-white p-4 shadow-sm">
+              <div className="mb-4 flex items-end gap-2">
+                <div className="flex-1">
+                  <label className={labelClass}>{t('relationEditor.fkName')}</label>
+                  <input
+                    type="text"
+                    value={fk.name}
+                    onChange={(e) => update(fk.id, { name: e.target.value })}
+                    className={`${inputClass} font-mono`}
+                    placeholder={suggestedName}
+                  />
+                </div>
+                <button
+                  onClick={() => removeForeignKey(tableId, fk.id)}
+                  className={`${iconButtonClass} hover:bg-red-50 hover:text-red-600`}
+                  title={t('relationEditor.deleteForeignKey')}
+                  aria-label={t('relationEditor.deleteForeignKey')}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="mb-4">
+                <label className={labelClass}>{t('relationEditor.refTable')}</label>
+                <select
+                  value={fk.referenceTable}
+                  onChange={(e) => changeReferenceTable(fk, e.target.value)}
+                  className={`${inputClass} font-mono`}
+                >
+                  <option value="">{t('relationEditor.selectContext')}</option>
+                  {tables.map((tb) => (
+                    <option key={tb.id} value={tb.id}>
+                      {tb.name || t('relationEditor.unnamed')}
+                      {tb.id === tableId ? ` (${t('relationEditor.self')})` : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mb-4">
+                <div className="mb-1 grid grid-cols-[1fr_auto_1fr_auto] gap-2">
+                  <span className={labelClass}>{t('relationEditor.sourceColumn')}</span>
+                  <span className="w-4" />
+                  <span className={labelClass}>{t('relationEditor.refColumn')}</span>
+                  <span className="w-8" />
+                </div>
+                <div className="space-y-2">
+                  {Array.from({ length: pairCount }, (_, i) => (
+                    <div key={i} className="grid grid-cols-[1fr_auto_1fr_auto] items-center gap-2">
+                      <select
+                        value={fk.columns[i] ?? ''}
+                        onChange={(e) => setPair(fk, i, 'columns', e.target.value)}
+                        className={`${inputClass} font-mono`}
+                      >
+                        <option value="">{t('relationEditor.selectContext')}</option>
+                        {currentTable.columns.map((col) => (
+                          <option key={col.id} value={col.name}>
+                            {col.name}
+                          </option>
+                        ))}
+                      </select>
+                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <select
+                        value={fk.referenceColumns[i] ?? ''}
+                        onChange={(e) => setPair(fk, i, 'referenceColumns', e.target.value)}
+                        disabled={!refTable}
+                        className={`${inputClass} font-mono`}
+                      >
+                        <option value="">{t('relationEditor.selectContext')}</option>
+                        {refTable?.columns.map((col) => (
+                          <option key={col.id} value={col.name}>
+                            {col.name}
+                          </option>
+                        ))}
+                      </select>
+                      <button
+                        onClick={() => removePair(fk, i)}
+                        className={`${iconButtonClass} p-1.5 hover:bg-gray-100 hover:text-gray-700`}
+                        aria-label={t('relationEditor.removePair')}
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={() => addPair(fk)}
+                  className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  <Plus className="h-4 w-4" /> {t('relationEditor.addPair')}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {(['onDelete', 'onUpdate'] as const).map((field) => (
+                  <div key={field}>
+                    <label className={labelClass}>{t(`relationEditor.${field}`)}</label>
+                    <select
+                      value={fk[field] ?? 'NO ACTION'}
+                      onChange={(e) => update(fk.id, { [field]: e.target.value as ReferentialAction })}
+                      className={`${inputClass} font-mono`}
+                    >
+                      {REFERENTIAL_ACTIONS.map((action) => (
+                        <option key={action} value={action}>
+                          {action}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })
+      )}
+    </Modal>
   );
 }

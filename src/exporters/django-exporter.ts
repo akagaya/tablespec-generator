@@ -1,5 +1,7 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { capitalize, joinLines, resolveForeignKeys } from './utils';
+import { indexNameOf } from '../lib/naming';
 
 export const djangoExporter: Exporter = {
   id: 'django',
@@ -12,7 +14,7 @@ export const djangoExporter: Exporter = {
     lines.push(``);
 
     spec.tables.forEach(table => {
-      const modelName = table.name.charAt(0).toUpperCase() + table.name.slice(1);
+      const modelName = capitalize(table.name);
       lines.push(`class ${modelName}(models.Model):`);
       
       table.columns.forEach(col => {
@@ -46,8 +48,8 @@ export const djangoExporter: Exporter = {
       });
 
       // Simple implementation of foreign keys handling
-      table.foreignKeys.forEach(fk => {
-          let refModelName = fk.referenceTable.charAt(0).toUpperCase() + fk.referenceTable.slice(1);
+      resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
+          let refModelName = capitalize(referenceTableName);
           let args: string[] = [`'${refModelName}'`];
           let on_delete = 'models.CASCADE';
           if (fk.onDelete === 'SET NULL') on_delete = 'models.SET_NULL';
@@ -67,7 +69,7 @@ export const djangoExporter: Exporter = {
         lines.push(`        indexes = [`);
         table.indexes.forEach(idx => {
           const cols = idx.columns.map(c => `'${c}'`).join(', ');
-          lines.push(`            models.Index(fields=[${cols}], name='${idx.name}'),`);
+          lines.push(`            models.Index(fields=[${cols}], name='${indexNameOf(table, idx)}'),`);
         });
         lines.push(`        ]`);
       }
@@ -76,7 +78,7 @@ export const djangoExporter: Exporter = {
 
     return {
       filename: 'models.py',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'python',
     };
   }

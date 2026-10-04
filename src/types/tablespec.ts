@@ -1,19 +1,26 @@
 // ─── Database Engine ───
 
-export type DatabaseEngine = 'mariadb' | 'postgresql' | 'sqlite' | 'mysql';
+export const DATABASE_ENGINES = ['mariadb', 'mysql', 'postgresql', 'sqlite'] as const;
+
+export type DatabaseEngine = (typeof DATABASE_ENGINES)[number];
 
 // ─── Referential Actions ───
 
-export type ReferentialAction =
-  | 'CASCADE'
-  | 'SET NULL'
-  | 'SET DEFAULT'
-  | 'RESTRICT'
-  | 'NO ACTION';
+export const REFERENTIAL_ACTIONS = [
+  'CASCADE',
+  'SET NULL',
+  'SET DEFAULT',
+  'RESTRICT',
+  'NO ACTION',
+] as const;
+
+export type ReferentialAction = (typeof REFERENTIAL_ACTIONS)[number];
 
 // ─── Index Type ───
 
-export type IndexType = 'btree' | 'hash' | 'gin' | 'gist' | 'brin';
+export const INDEX_TYPES = ['btree', 'hash', 'gin', 'gist', 'brin'] as const;
+
+export type IndexType = (typeof INDEX_TYPES)[number];
 
 // ─── Default Value ───
 

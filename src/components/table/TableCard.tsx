@@ -1,325 +1,134 @@
-import { useState } from 'react';
-import { Link, ListOrdered, Trash2, Plus, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { ChevronDown, Link, ListOrdered, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '../../store/useProjectStore';
+import { useUiStore } from '../../store/useUiStore';
 import { getColumnTypes } from '../../data/column-types';
-import { Table, Column } from '../../types/tablespec';
-import { RelationEditor } from '../relation/RelationEditor';
-import { IndexEditor } from '../index/IndexEditor';
+import type { Table } from '../../types/tablespec';
+import { useIsDesktop } from '../../hooks/useMediaQuery';
+import { CommitInput } from '../ui/CommitInput';
+import { iconButtonClass } from '../ui/styles';
+import { ColumnGrid } from './ColumnGrid';
+import { ColumnList } from './ColumnList';
+
+const HEADER_INPUT =
+  'min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1 placeholder-gray-500 transition-colors hover:border-gray-600 focus:border-blue-400 focus:bg-gray-700 focus:outline-none';
+
+function CountButton({
+  icon: Icon,
+  label,
+  count,
+  onClick,
+}: {
+  icon: typeof Link;
+  label: string;
+  count: number;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={label}
+      className={`${iconButtonClass} gap-1.5 hover:bg-gray-700 hover:text-white`}
+    >
+      <Icon className="h-4 w-4" />
+      <span className="hidden text-xs font-medium lg:inline">{label}</span>
+      {count > 0 && (
+        <span className="rounded-full bg-blue-500 px-1.5 text-[10px] font-bold leading-4 text-white">{count}</span>
+      )}
+    </button>
+  );
+}
 
 export function TableCard({ table }: { table: Table }) {
   const { t } = useTranslation();
-  const engine = useProjectStore(state => state.spec.database.engine);
-  const version = useProjectStore(state => state.spec.database.version);
-  const updateTableName = useProjectStore(state => state.updateTableName);
-  const updateTableComment = useProjectStore(state => state.updateTableComment);
-  const removeTable = useProjectStore(state => state.removeTable);
-  const addColumn = useProjectStore(state => state.addColumn);
-  const removeColumn = useProjectStore(state => state.removeColumn);
-  const updateColumn = useProjectStore(state => state.updateColumn);
+  const engine = useProjectStore((state) => state.spec.database.engine);
+  const version = useProjectStore((state) => state.spec.database.version);
+  const updateTableName = useProjectStore((state) => state.updateTableName);
+  const updateTableComment = useProjectStore((state) => state.updateTableComment);
+  const removeTable = useProjectStore((state) => state.removeTable);
+  const openDialog = useUiStore((state) => state.openDialog);
+  const isFocused = useUiStore((state) => state.focusedTableId === table.id);
+  const focusTable = useUiStore((state) => state.focusTable);
+  const isDesktop = useIsDesktop();
 
-  const [isRelationEditorOpen, setIsRelationEditorOpen] = useState(false);
-  const [isIndexEditorOpen, setIsIndexEditorOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const cardRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!isFocused) return;
+    setIsCollapsed(false);
+    cardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const timer = setTimeout(() => focusTable(null), 1500);
+    return () => clearTimeout(timer);
+  }, [isFocused, focusTable]);
 
   const columnTypes = getColumnTypes(engine, version);
-  const categories = Array.from(new Set(columnTypes.map(tc => tc.category)));
-
-  const showUnsigned = engine === 'mariadb';
-
-  const handleColumnUpdate = (colId: string, field: keyof Column, value: any) => {
-    updateColumn(table.id, colId, { [field]: value });
-  };
+  const openRelationEditor = () => openDialog({ type: 'relation', tableId: table.id });
+  const Body = isDesktop ? ColumnGrid : ColumnList;
 
   return (
-    <div className="bg-white border border-gray-300 shadow-sm">
-      <div className="px-3 sm:px-4 py-2 border-b border-gray-300 flex flex-col sm:flex-row sm:items-center justify-between bg-gray-800 gap-2 sm:gap-0">
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 flex-1">
-          <input
-            type="text"
-            value={table.name}
-            onChange={(e) => updateTableName(table.id, e.target.value)}
-            placeholder={t('table.tableName')}
-            className="font-bold px-2 py-1 sm:py-0.5 bg-gray-700 text-white placeholder-gray-400 border border-transparent hover:border-gray-500 focus:bg-gray-600 focus:border-gray-500 focus:outline-none w-full sm:w-64 transition-colors"
+    <section
+      ref={cardRef}
+      id={`table-${table.id}`}
+      className={`scroll-mt-4 overflow-hidden rounded-xl border bg-white shadow-sm transition-shadow ${
+        isFocused ? 'border-blue-400 ring-4 ring-blue-200' : 'border-gray-200'
+      }`}
+    >
+      <header className="flex flex-wrap items-center gap-x-2 gap-y-1 bg-gray-800 px-2 py-2 sm:px-3">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-expanded={!isCollapsed}
+          aria-label={isCollapsed ? t('table.expand') : t('table.collapse')}
+          className={`${iconButtonClass} p-1 hover:bg-gray-700 hover:text-white`}
+        >
+          <ChevronDown className={`h-4 w-4 transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+        </button>
+        <CommitInput
+          value={table.name}
+          onCommit={(name) => updateTableName(table.id, name)}
+          placeholder={t('table.tableName')}
+          aria-label={t('table.tableName')}
+          className={`${HEADER_INPUT} w-0 flex-1 font-mono font-bold text-white sm:max-w-64`}
+        />
+        <span className="hidden shrink-0 text-xs text-gray-400 sm:inline">
+          {t('table.columnCount', { count: table.columns.length })}
+        </span>
+        <input
+          type="text"
+          value={table.comment}
+          onChange={(e) => updateTableComment(table.id, e.target.value)}
+          placeholder={t('table.tableComment')}
+          aria-label={t('table.tableComment')}
+          className={`${HEADER_INPUT} order-last w-full text-sm text-gray-300 sm:order-none sm:w-auto sm:flex-1`}
+        />
+        <div className="ml-auto flex shrink-0 items-center">
+          <CountButton
+            icon={Link}
+            label={t('table.foreignKeysTitle')}
+            count={table.foreignKeys.length}
+            onClick={openRelationEditor}
           />
-          <input
-            type="text"
-            value={table.comment}
-            onChange={(e) => updateTableComment(table.id, e.target.value)}
-            placeholder={t('table.tableComment')}
-            className="text-sm px-2 py-1 sm:py-0.5 bg-gray-700 text-gray-200 placeholder-gray-400 border border-transparent hover:border-gray-500 focus:bg-gray-600 focus:border-gray-500 focus:outline-none w-full sm:flex-1 sm:max-w-xs transition-colors"
+          <CountButton
+            icon={ListOrdered}
+            label={t('table.indexesTitle')}
+            count={table.indexes.length}
+            onClick={() => openDialog({ type: 'index', tableId: table.id })}
           />
-        </div>
-        <div className="flex items-center justify-end gap-1 sm:gap-2">
-          <button
-            onClick={() => setIsRelationEditorOpen(true)}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-            title={t('table.foreignKeysTitle')}
-          >
-            <Link className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => setIsIndexEditorOpen(true)}
-            className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-            title={t('table.indexesTitle')}
-          >
-            <ListOrdered className="w-5 h-5" />
-          </button>
           <button
             onClick={() => {
-              if (confirm(t('table.confirmDeleteTable'))) {
-                removeTable(table.id);
-              }
+              if (confirm(t('table.confirmDeleteTable', { name: table.name }))) removeTable(table.id);
             }}
-            className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-700 transition-colors"
+            className={`${iconButtonClass} hover:bg-gray-700 hover:text-red-400`}
             title={t('table.deleteTableTitle')}
+            aria-label={t('table.deleteTableTitle')}
           >
-            <Trash2 className="w-5 h-5" />
+            <Trash2 className="h-4 w-4" />
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className="overflow-x-auto relative flex">
-        <table className="text-left text-sm whitespace-nowrap border-collapse" style={{ minWidth: 'max-content' }}>
-          <tbody className="[&>tr:nth-child(even)]:bg-blue-50/50">
-            <tr>
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 w-28 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colName')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r w-40 relative group">
-                  <input
-                    type="text"
-                    value={col.name}
-                    onChange={(e) => handleColumnUpdate(col.id, 'name', e.target.value)}
-                    className="w-full px-2 py-1 border rounded pr-7"
-                  />
-                  <button
-                    onClick={() => removeColumn(table.id, col.id)}
-                    className="absolute top-1/2 right-3 -translate-y-1/2 text-gray-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                </td>
-              ))}
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colType')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r">
-                  <select
-                    value={col.type}
-                    onChange={(e) => handleColumnUpdate(col.id, 'type', e.target.value)}
-                    className="w-full px-2 py-1 border rounded"
-                  >
-                    <option value="">{t('table.select')}</option>
-                    {categories.map((cat) => (
-                      <optgroup key={cat} label={cat}>
-                        {columnTypes.filter(tc => tc.category === cat).map(tc => (
-                          <option key={tc.name} value={tc.name}>{tc.name}</option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </td>
-              ))}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colLength')}</th>
-              {table.columns.map((col) => {
-                const typeInfo = columnTypes.find(tc => tc.name === col.type);
-                return (
-                  <td key={col.id} className="p-2 border-r">
-                    {typeInfo?.hasLength && (
-                      <input
-                        type="number"
-                        value={col.length || ''}
-                        onChange={(e) => handleColumnUpdate(col.id, 'length', e.target.value ? parseInt(e.target.value) : undefined)}
-                        className="w-full px-2 py-1 border rounded"
-                      />
-                    )}
-                    {typeInfo?.hasPrecision && (
-                      <div className="flex gap-1 mt-1">
-                        <input
-                          type="number"
-                          placeholder="P"
-                          title="Precision"
-                          value={col.precision || ''}
-                          onChange={(e) => handleColumnUpdate(col.id, 'precision', e.target.value ? parseInt(e.target.value) : undefined)}
-                          className="w-1/2 px-1 py-1 text-xs border rounded"
-                        />
-                        {typeInfo?.hasScale && (
-                          <input
-                            type="number"
-                            placeholder="S"
-                            title="Scale"
-                            value={col.scale || ''}
-                            onChange={(e) => handleColumnUpdate(col.id, 'scale', e.target.value ? parseInt(e.target.value) : undefined)}
-                            className="w-1/2 px-1 py-1 text-xs border rounded"
-                          />
-                        )}
-                      </div>
-                    )}
-                  </td>
-                );
-              })}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colPk')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r text-center">
-                  <input
-                    type="checkbox"
-                    checked={col.primaryKey}
-                    onChange={(e) => handleColumnUpdate(col.id, 'primaryKey', e.target.checked)}
-                  />
-                </td>
-              ))}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colNullable')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r text-center">
-                  <input
-                    type="checkbox"
-                    checked={col.nullable}
-                    onChange={(e) => handleColumnUpdate(col.id, 'nullable', e.target.checked)}
-                  />
-                </td>
-              ))}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colUnique')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r text-center">
-                  <input
-                    type="checkbox"
-                    checked={col.unique}
-                    onChange={(e) => handleColumnUpdate(col.id, 'unique', e.target.checked)}
-                  />
-                </td>
-              ))}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colAutoIncrement')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r text-center">
-                  <input
-                    type="checkbox"
-                    checked={col.autoIncrement}
-                    onChange={(e) => handleColumnUpdate(col.id, 'autoIncrement', e.target.checked)}
-                  />
-                </td>
-              ))}
-
-            </tr>
-            {showUnsigned && (
-              <tr className="border-t">
-                <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colUnsigned')}</th>
-                {table.columns.map((col) => (
-                  <td key={col.id} className="p-2 border-r text-center">
-                    <input
-                      type="checkbox"
-                      checked={col.unsigned}
-                      onChange={(e) => handleColumnUpdate(col.id, 'unsigned', e.target.checked)}
-                    />
-                  </td>
-                ))}
-              </tr>
-            )}
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colDefault')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r">
-                  <input
-                    type="text"
-                    value={typeof col.default === 'object' && col.default !== null ? (col.default as any).expression : col.default || ''}
-                    onChange={(e) => handleColumnUpdate(col.id, 'default', e.target.value)}
-                    className="w-full px-2 py-1 border rounded"
-                  />
-                </td>
-              ))}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colComment')}</th>
-              {table.columns.map((col) => (
-                <td key={col.id} className="p-2 border-r">
-                  <input
-                    type="text"
-                    value={col.comment}
-                    onChange={(e) => handleColumnUpdate(col.id, 'comment', e.target.value)}
-                    className="w-full px-2 py-1 border rounded"
-                  />
-                </td>
-              ))}
-
-            </tr>
-            <tr className="border-t">
-              <th className="sticky left-0 bg-gray-700 text-white z-10 p-2 border-r border-gray-600 font-medium shadow-[2px_0_4px_rgba(0,0,0,0.1)]">{t('table.colRelation')}</th>
-              {table.columns.map((col) => {
-                const fk = table.foreignKeys.find(f => f.columns.includes(col.name));
-                let relationText = '';
-                if (fk && fk.referenceTable) {
-                  const idx = fk.columns.indexOf(col.name);
-                  const refColName = fk.referenceColumns[idx];
-                  if (refColName) {
-                    relationText = `${fk.referenceTable}.${refColName}`;
-                  } else {
-                    relationText = fk.referenceTable;
-                  }
-                }
-                return (
-                  <td key={col.id} className="p-2 border-r text-center bg-gray-50/50">
-                    {fk ? (
-                      <button
-                        onClick={() => setIsRelationEditorOpen(true)}
-                        className="text-xs text-blue-700 bg-blue-100 border border-blue-200 px-2 py-0.5 rounded hover:bg-blue-200 flex items-center justify-center gap-1 w-full truncate"
-                        title={t('table.editRelationTitle')}
-                      >
-                        <Link className="w-3 h-3 flex-shrink-0" />
-                        <span className="truncate">{relationText}</span>
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => setIsRelationEditorOpen(true)}
-                        className="text-gray-300 hover:text-blue-500 mx-auto block p-1 rounded hover:bg-gray-200"
-                        title={t('table.addRelationTitle')}
-                      >
-                        <Link className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-          </tbody>
-        </table>
-        <button
-          onClick={() => addColumn(table.id)}
-          className="flex-shrink-0 w-40 bg-gray-100 hover:bg-blue-100 border-l-2 border-gray-200 flex items-center justify-center text-gray-400 hover:text-blue-600 transition-colors group"
-          title={t('table.addColumnTitle')}
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-      </div>
-
-      {isRelationEditorOpen && (
-        <RelationEditor
-          tableId={table.id}
-          isOpen={isRelationEditorOpen}
-          onClose={() => setIsRelationEditorOpen(false)}
-        />
-      )}
-      {isIndexEditorOpen && (
-        <IndexEditor
-          tableId={table.id}
-          isOpen={isIndexEditorOpen}
-          onClose={() => setIsIndexEditorOpen(false)}
-        />
-      )}
-    </div>
+      {!isCollapsed && <Body table={table} columnTypes={columnTypes} onEditRelation={openRelationEditor} />}
+    </section>
   );
 }

@@ -1,15 +1,21 @@
 import type { Exporter, ExportResult } from '../../types/exporter';
 import type { TableSpec, Column, DatabaseEngine } from '../../types/tablespec';
+import { isMysqlFamily, joinLines, resolveForeignKeys } from '../utils';
+import { foreignKeyNameOf, indexNameOf } from '../../lib/naming';
 
 function quote(identifier: string, engine: DatabaseEngine): string {
-  if (engine === 'mariadb' || engine === 'mysql') return `\`${identifier}\``;
+  if (isMysqlFamily(engine)) return `\`${identifier}\``;
   return `"${identifier}"`;
+}
+
+function quoteLiteral(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
 }
 
 function getDefaultValue(def: Column['default']): string {
   if (def === null || def === undefined) return 'NULL';
   if (typeof def === 'object' && 'expression' in def) return def.expression;
-  if (typeof def === 'string') return `'${def.replace(/'/g, "''")}'`;
+  if (typeof def === 'string') return quoteLiteral(def);
   if (typeof def === 'boolean') return def ? 'TRUE' : 'FALSE';
   return String(def);
 }
@@ -25,14 +31,16 @@ function getColumnDefinition(col: Column, engine: DatabaseEngine): string {
 
   let def = `${quote(col.name, engine)} ${type}`;
   
-  if (col.length) def += `(${col.length})`;
-  else if (col.precision && col.scale) def += `(${col.precision}, ${col.scale})`;
+  if (col.enumValues?.length) def += `(${col.enumValues.map(quoteLiteral).join(', ')})`;
+  else if (col.length) def += `(${col.length})`;
+  else if (col.precision && col.scale !== undefined) def += `(${col.precision}, ${col.scale})`;
+  else if (col.precision) def += `(${col.precision})`;
   
-  if (col.unsigned && (engine === 'mariadb' || engine === 'mysql')) def += ' UNSIGNED';
+  if (col.unsigned && isMysqlFamily(engine)) def += ' UNSIGNED';
   if (!col.nullable) def += ' NOT NULL';
   
   if (col.autoIncrement && engine !== 'postgresql') {
-    if (engine === 'mariadb' || engine === 'mysql') def += ' AUTO_INCREMENT';
+    if (isMysqlFamily(engine)) def += ' AUTO_INCREMENT';
     if (engine === 'sqlite' && col.primaryKey) def += ' AUTOINCREMENT';
   }
 
@@ -42,7 +50,7 @@ function getColumnDefinition(col: Column, engine: DatabaseEngine): string {
     def += ` DEFAULT ${getDefaultValue(col.default)}`;
   }
   
-  if (col.comment && (engine === 'mariadb' || engine === 'mysql')) {
+  if (col.comment && isMysqlFamily(engine)) {
     def += ` COMMENT '${col.comment.replace(/'/g, "''")}'`;
   }
   
@@ -74,7 +82,7 @@ export const sqlExporter: Exporter = {
       lines.push(tableElements.join(',\n'));
       
       let tableSuffix = ')';
-      if (engine === 'mariadb' || engine === 'mysql') {
+      if (isMysqlFamily(engine)) {
         tableSuffix += ' ENGINE=InnoDB';
         if (spec.database.charset) tableSuffix += ` DEFAULT CHARSET=${spec.database.charset}`;
         if (table.comment) tableSuffix += ` COMMENT='${table.comment.replace(/'/g, "''")}'`;
@@ -86,17 +94,17 @@ export const sqlExporter: Exporter = {
       table.indexes.forEach((idx) => {
         const unique = idx.unique ? 'UNIQUE ' : '';
         const cols = idx.columns.map((c) => quote(c, engine)).join(', ');
-        lines.push(`CREATE ${unique}INDEX ${quote(idx.name, engine)} ON ${quote(table.name, engine)} (${cols});`);
+        lines.push(`CREATE ${unique}INDEX ${quote(indexNameOf(table, idx), engine)} ON ${quote(table.name, engine)} (${cols});`);
       });
       if (table.indexes.length > 0) lines.push('');
     });
     
     if (engine !== 'sqlite') {
       spec.tables.forEach((table) => {
-        table.foreignKeys.forEach((fk) => {
+        resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
           const cols = fk.columns.map((c) => quote(c, engine)).join(', ');
           const refCols = fk.referenceColumns.map((c) => quote(c, engine)).join(', ');
-          let constraint = `ALTER TABLE ${quote(table.name, engine)} ADD CONSTRAINT ${quote(fk.name, engine)} FOREIGN KEY (${cols}) REFERENCES ${quote(fk.referenceTable, engine)} (${refCols})`;
+          let constraint = `ALTER TABLE ${quote(table.name, engine)} ADD CONSTRAINT ${quote(foreignKeyNameOf(spec, table, fk), engine)} FOREIGN KEY (${cols}) REFERENCES ${quote(referenceTableName, engine)} (${refCols})`;
           if (fk.onDelete) constraint += ` ON DELETE ${fk.onDelete}`;
           if (fk.onUpdate) constraint += ` ON UPDATE ${fk.onUpdate}`;
           constraint += ';';
@@ -107,7 +115,7 @@ export const sqlExporter: Exporter = {
 
     return {
       filename: 'schema.sql',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'sql',
     };
   },

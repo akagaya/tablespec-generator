@@ -4,27 +4,39 @@ import { initReactI18next } from 'react-i18next';
 import ja from './locales/ja.json';
 import en from './locales/en.json';
 
-const resources = {
-  en,
-  ja
-};
+export const LANGUAGES = [
+  { code: 'ja', label: '日本語' },
+  { code: 'en', label: 'English' },
+] as const;
 
-const savedLang = localStorage.getItem('tablespec-lang') || 'ja';
+const STORAGE_KEY = 'tablespec-lang';
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: savedLang,
-    fallbackLng: 'ja',
-    interpolation: {
-      escapeValue: false
-    }
-  });
+function readSavedLanguage(): string {
+  try {
+    return localStorage.getItem(STORAGE_KEY) || 'ja';
+  } catch {
+    return 'ja';
+  }
+}
 
-i18n.on('languageChanged', (lng) => {
-  localStorage.setItem('tablespec-lang', lng);
+i18n.use(initReactI18next).init({
+  resources: { en, ja },
+  lng: readSavedLanguage(),
+  fallbackLng: 'ja',
+  interpolation: {
+    escapeValue: false,
+  },
 });
 
-export default i18n;
+i18n.on('languageChanged', (lng) => {
+  try {
+    localStorage.setItem(STORAGE_KEY, lng);
+  } catch {
+    // ストレージが使えない環境では保存しない
+  }
+  document.documentElement.lang = lng;
+});
 
+document.documentElement.lang = i18n.language;
+
+export default i18n;

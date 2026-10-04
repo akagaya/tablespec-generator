@@ -1,5 +1,6 @@
 import type { Exporter, ExportResult } from '../types/exporter';
 import type { TableSpec } from '../types/tablespec';
+import { joinLines, resolveForeignKeys } from './utils';
 
 export const railsExporter: Exporter = {
   id: 'rails',
@@ -53,8 +54,8 @@ export const railsExporter: Exporter = {
     });
 
     spec.tables.forEach(table => {
-      table.foreignKeys.forEach(fk => {
-        lines.push(`    add_foreign_key :${table.name}, :${fk.referenceTable}, column: :${fk.columns[0]}, primary_key: :${fk.referenceColumns[0]}`);
+      resolveForeignKeys(spec, table).forEach(({ fk, referenceTableName }) => {
+        lines.push(`    add_foreign_key :${table.name}, :${referenceTableName}, column: :${fk.columns[0]}, primary_key: :${fk.referenceColumns[0]}`);
       });
     });
 
@@ -63,7 +64,7 @@ export const railsExporter: Exporter = {
 
     return {
       filename: 'migration.rb',
-      content: lines.join('\n').trim() + '\n',
+      content: joinLines(lines),
       language: 'ruby',
     };
   }

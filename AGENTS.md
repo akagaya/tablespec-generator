@@ -24,20 +24,28 @@
 
 ```
 src/
-├── types/          # TableSpec 型定義、Exporter インターフェース
-├── data/           # DB別データ型マスタ
-├── store/          # Zustand ストア（useProjectStore）
+├── types/          # TableSpec 型定義・列挙定数、Exporter インターフェース
+├── data/           # DB別データ型マスタ（types/*.json を glob 収集）
+├── lib/            # UI 非依存の純粋ロジック（インポート検証、デフォルト値、型変更）
+├── store/          # Zustand ストア
+│   ├── useProjectStore.ts  # TableSpec 本体（persist → localStorage）
+│   ├── spec-updaters.ts    # 参照整合性を保つ純粋更新関数
+│   └── useUiStore.ts       # ダイアログ等の非永続 UI 状態
 ├── components/     # React UIコンポーネント
+│   ├── ui/         #   Modal, CommitInput, 共通スタイル（styles.ts）
 │   ├── layout/     #   Header, Workspace
-│   ├── table/      #   TableCard, ColumnCell, AddColumn/Table
+│   ├── table/      #   TableCard, ColumnGrid（md以上）/ ColumnList（md未満）, セル部品
 │   ├── relation/   #   RelationEditor (modal)
 │   ├── index/      #   IndexEditor (modal)
-│   └── export/     #   ExportDialog
+│   ├── export/     #   ExportDialog, MermaidPreview（mermaid は動的 import）
+│   └── DialogHost  #   useUiStore.dialog に応じてモーダルを描画
 ├── exporters/      # エクスポータプラグインシステム
 │   ├── registry.ts #   ExporterRegistry（register/get/getAll）
+│   ├── run.ts      #   実行ヘルパ（結果を配列に正規化）
 │   ├── sql/        #   SQL エクスポータ + DB方言
 │   └── *.ts        #   各フレームワーク向けエクスポータ
-└── hooks/          # カスタムフック
+├── hooks/          # カスタムフック
+└── __tests__/      # Vitest（エクスポータはスナップショットで出力を固定）
 ```
 
 ## 核心設計
@@ -47,9 +55,19 @@ src/
 - `public/tablespec.schema.json` に JSON Schema を配置
 - バージョン: `1.0.0`
 
+### 参照整合性
+- 外部キーの参照先テーブル（`referenceTable`）はテーブル **ID** で参照する（仕様準拠。テーブル名の変更に影響されない）
+- インデックス・外部キーのカラムはカラム**名**で参照する。カラム名の変更・削除は `store/spec-updaters.ts` が参照側へ伝播する
+- 旧形式（`referenceTable` にテーブル名）は、インポート時と localStorage の persist `migrate`（v0→v1）で ID に変換する
+- エクスポータは `exporters/utils.ts` の `resolveForeignKeys` で参照先名を解決する。解決できない不完全な外部キーは出力しない
+- カラム名入力は `CommitInput`（blur / Enter で確定）を使う。1文字ごとに伝播させると途中の名前衝突で参照が壊れるため
+
 ### UI モデル
 - テーブルカード: 行=属性（Type, PK, Null, etc.）、列=DBカラム
 - カラム追加時は右方向に伸びる（横スクロール対応）
+- md 未満ではカラムを縦リスト（タップで展開）で表示する
+- lg 以上では左にテーブル一覧サイドバーを表示する
+- モーダルはモバイルで全画面、sm 以上で中央ダイアログ
 - テーブル・カラムは自由に増減可能
 
 ### エクスポータプラグイン
@@ -83,6 +101,10 @@ docker compose up prod       # http://localhost:8080
 # ローカル開発（Docker不使用）
 npm install
 npm run dev
+
+# テスト・型チェック
+npm test
+npm run typecheck
 ```
 
 ## 現在のステータス
