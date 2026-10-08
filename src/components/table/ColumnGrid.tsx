@@ -30,9 +30,9 @@ interface Props {
 }
 
 const LABEL_CELL =
-  'sticky left-0 z-10 w-32 min-w-32 border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]';
+  'sticky left-0 z-10 w-24 min-w-24 border-r border-gray-200 bg-gray-50 px-2 py-2 text-left sm:w-32 sm:min-w-32 sm:px-3 text-xs font-semibold uppercase tracking-wide text-gray-600 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.08)]';
 
-/** デスクトップ用：行＝属性、列＝カラムの横展開グリッド */
+/** 行＝属性、列＝カラムの横展開グリッド。全画面幅で横スクロールし、属性ラベル列は固定する */
 export function ColumnGrid({ table, columnTypes, onEditRelation }: Props) {
   const { t } = useTranslation();
   const addColumn = useProjectStore((state) => state.addColumn);
@@ -112,13 +112,13 @@ export function ColumnGrid({ table, columnTypes, onEditRelation }: Props) {
   }));
 
   return (
-    <div className="flex overflow-x-auto">
+    <div className="flex overflow-x-auto overscroll-x-contain">
       <table className="shrink-0 border-separate border-spacing-0 text-sm">
         <thead>
           <tr>
             <th className={`${LABEL_CELL} border-b`}>#</th>
             {contexts.map(({ column, index }) => (
-              <th key={column.id} className="w-44 min-w-44 border-b border-r border-gray-200 bg-gray-50 px-2 py-1.5">
+              <th key={column.id} className="w-40 min-w-40 border-b border-r border-gray-200 bg-gray-50 px-2 py-1.5 sm:w-44 sm:min-w-44">
                 <div className="flex items-center justify-between gap-2">
                   <span className="flex items-center gap-2 text-xs font-medium text-gray-500">
                     {index + 1}
@@ -157,7 +157,7 @@ export function ColumnGrid({ table, columnTypes, onEditRelation }: Props) {
           ))}
         </tbody>
       </table>
-      <div className="w-32 shrink-0 p-2">
+      <div className="w-24 shrink-0 p-2 sm:w-32">
         <button
           onClick={() => addColumn(table.id)}
           className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-gray-300 text-xs font-medium text-gray-500 transition-colors hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"

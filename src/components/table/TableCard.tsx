@@ -5,11 +5,9 @@ import { useProjectStore } from '../../store/useProjectStore';
 import { useUiStore } from '../../store/useUiStore';
 import { getColumnTypes } from '../../data/column-types';
 import type { Table } from '../../types/tablespec';
-import { useIsDesktop } from '../../hooks/useMediaQuery';
 import { CommitInput } from '../ui/CommitInput';
 import { darkIconButtonClass } from '../ui/styles';
 import { ColumnGrid } from './ColumnGrid';
-import { ColumnList } from './ColumnList';
 
 const HEADER_INPUT =
   'min-w-0 rounded-md border border-transparent bg-transparent px-2 py-1 placeholder-gray-400 transition-colors hover:border-gray-600 focus:border-blue-400 focus:bg-gray-700 focus:outline-none';
@@ -50,7 +48,6 @@ export function TableCard({ table }: { table: Table }) {
   const openDialog = useUiStore((state) => state.openDialog);
   const isFocused = useUiStore((state) => state.focusedTableId === table.id);
   const focusTable = useUiStore((state) => state.focusTable);
-  const isDesktop = useIsDesktop();
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const cardRef = useRef<HTMLElement>(null);
@@ -65,7 +62,6 @@ export function TableCard({ table }: { table: Table }) {
 
   const columnTypes = getColumnTypes(engine, version);
   const openRelationEditor = () => openDialog({ type: 'relation', tableId: table.id });
-  const Body = isDesktop ? ColumnGrid : ColumnList;
 
   return (
     <section
@@ -128,7 +124,7 @@ export function TableCard({ table }: { table: Table }) {
         </div>
       </header>
 
-      {!isCollapsed && <Body table={table} columnTypes={columnTypes} onEditRelation={openRelationEditor} />}
+      {!isCollapsed && <ColumnGrid table={table} columnTypes={columnTypes} onEditRelation={openRelationEditor} />}
     </section>
   );
 }
